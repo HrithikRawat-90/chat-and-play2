@@ -13,8 +13,9 @@
     "test:chat": "cd backend && node test-chat.js",
     "test:socket": "cd backend && node test-socket.js",
     "test:game": "cd backend && node test-game.js",
+    "test:ai": "cd backend && node test-ai.js",
     "test:e2e": "cd backend && node test-e2e.js",
-    "test": "npm run test:auth && npm run test:chat && npm run test:socket && npm run test:game && npm run test:e2e"
+    "test": "npm run test:auth && npm run test:chat && npm run test:socket && npm run test:game && npm run test:ai && npm run test:e2e"
   },
   "keywords": [
     "mern",
@@ -26,5 +27,8 @@
     "mongodb"
   ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^3.0.0"
+  }
 }

@@ -18,8 +18,8 @@ export const getUsers = async (req, res) => {
     }
 
     const users = await User.find(query)
-      .select('name email profilePicture bio isOnline lastSeen')
-      .sort({ name: 1 })
+      .select('name email profilePicture bio isOnline lastSeen isBot')
+      .sort({ isBot: -1, name: 1 })
       .limit(50);
 
     return res.status(200).json({

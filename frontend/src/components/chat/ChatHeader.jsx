@@ -50,16 +50,29 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
         </div>
 
         <div className="min-w-0">
-          <h2 className="font-semibold text-white text-sm sm:text-base truncate leading-tight">
-            {name}
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="font-semibold text-white text-sm sm:text-base truncate leading-tight">
+              {name}
+            </h2>
+            {(contact?.isBot || name === 'Chatbot') && (
+              <span className="px-1.5 py-0.5 rounded-md bg-purple-600/30 border border-purple-500/40 text-[10px] font-bold text-purple-300 uppercase tracking-wider">
+                Gemini AI
+              </span>
+            )}
+          </div>
           <p className="text-xs text-purple-300/60 leading-none mt-0.5 flex items-center gap-1.5">
             <span
               className={`w-1.5 h-1.5 rounded-full ${
                 isOnline ? 'bg-emerald-400' : 'bg-gray-500'
               }`}
             />
-            <span>{isOnline ? 'Online' : 'Offline'}</span>
+            <span>
+              {isOnline
+                ? contact?.isBot || name === 'Chatbot'
+                  ? 'Gemini 3.8 Flash Online'
+                  : 'Online'
+                : 'Offline'}
+            </span>
           </p>
         </div>
       </div>

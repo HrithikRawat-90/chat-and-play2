@@ -43,6 +43,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    isBot: {
+      type: Boolean,
+      default: false,
+    },
     blockedUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,

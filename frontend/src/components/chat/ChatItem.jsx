@@ -56,13 +56,20 @@ const ChatItem = ({ conversation, isSelected, onClick }) => {
       {/* Middle Text Details */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-0.5">
-          <h3
-            className={`text-sm font-semibold truncate ${
-              isSelected ? 'text-white' : 'text-purple-100 group-hover:text-white'
-            }`}
-          >
-            {name}
-          </h3>
+          <div className="flex items-center gap-1.5 truncate">
+            <h3
+              className={`text-sm font-semibold truncate ${
+                isSelected ? 'text-white' : 'text-purple-100 group-hover:text-white'
+              }`}
+            >
+              {name}
+            </h3>
+            {(contact?.isBot || name === 'Chatbot') && (
+              <span className="px-1.5 py-0.2 rounded bg-purple-600/30 border border-purple-500/40 text-[9px] font-bold text-purple-300 uppercase tracking-wider">
+                AI
+              </span>
+            )}
+          </div>
           <span className="text-[11px] text-purple-300/50 flex-shrink-0 ml-2">
             {timestamp}
           </span>

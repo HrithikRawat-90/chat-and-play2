@@ -8,9 +8,11 @@ import { fileURLToPath } from 'url';
 
 import connectDB from './config/db.js';
 import { removeDefaultUsers } from './config/cleanDefaultUsers.js';
+import { ensureChatbotUser } from './services/geminiService.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 import { initSocket } from './socket/socketHandler.js';
 
 // Load environment variables
@@ -54,6 +56,7 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api', chatRoutes);
 
 // In production, serve the built Vite frontend files as static assets
@@ -94,6 +97,7 @@ const startServer = async () => {
   try {
     await connectDB();
     await removeDefaultUsers();
+    await ensureChatbotUser();
     server.listen(PORT, () => {
       console.log(`[Server] Chat & Play backend listening on http://localhost:${PORT}`);
     });

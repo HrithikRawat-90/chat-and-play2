@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Conversation from '../models/Conversation.js';
 import Message from '../models/Message.js';
 import { gameManager } from '../games/gameManager.js';
+import { getChatbotReply } from '../services/geminiService.js';
 
 // In-memory mapping of online users: userId string -> Set of socket IDs
 const onlineUsers = new Map();
@@ -193,6 +194,79 @@ export const initSocket = (server) => {
         });
 
         if (callback) callback({ success: true, message: populatedMsg });
+
+        // Auto-reply if conversational partner is Chatbot
+        try {
+          const participants = await User.find({ _id: { $in: conversation.participants } });
+          const botUser = participants.find((p) => p.isBot || p.email === 'chatbot@chatplay.ai');
+
+          if (botUser && botUser._id.toString() !== userId) {
+            // 1. Emit typing indicator for bot
+            io.to(conversationId).emit('typing:start', {
+              conversationId,
+              userId: botUser._id.toString(),
+              userName: 'Chatbot (Gemini AI)',
+            });
+
+            // 2. Fetch recent conversation context
+            const recentMsgs = await Message.find({ conversationId })
+              .populate('senderId', 'name isBot')
+              .sort({ createdAt: -1 })
+              .limit(8);
+            recentMsgs.reverse();
+
+            // 3. Call Gemini service asynchronously
+            setTimeout(async () => {
+              try {
+                const botReplyText = await getChatbotReply(recentMsgs);
+
+                // Stop typing indicator
+                io.to(conversationId).emit('typing:stop', {
+                  conversationId,
+                  userId: botUser._id.toString(),
+                });
+
+                // Save bot reply
+                const botMsg = await Message.create({
+                  conversationId,
+                  senderId: botUser._id,
+                  text: botReplyText,
+                  imageUrl: '',
+                  isRead: true,
+                });
+
+                conversation.lastMessage = {
+                  text: botReplyText,
+                  sender: botUser._id,
+                  createdAt: new Date(),
+                };
+                await conversation.save();
+
+                const populatedBotMsg = await Message.findById(botMsg._id).populate(
+                  'senderId',
+                  'name profilePicture bio isOnline isBot'
+                );
+
+                // Emit to conversation room and to human user
+                io.to(conversationId).emit('message:receive', populatedBotMsg);
+                io.to(`user:${userId}`).emit('message:receive', populatedBotMsg);
+                io.to(`user:${userId}`).emit('conversation:updated', {
+                  conversationId,
+                  lastMessage: conversation.lastMessage,
+                  updatedAt: conversation.updatedAt,
+                });
+              } catch (botErr) {
+                console.error('[Chatbot Error]', botErr.message);
+                io.to(conversationId).emit('typing:stop', {
+                  conversationId,
+                  userId: botUser._id.toString(),
+                });
+              }
+            }, 600);
+          }
+        } catch (botCheckErr) {
+          console.warn('Could not check chatbot participation:', botCheckErr.message);
+        }
       } catch (err) {
         console.error('Error handling message:send:', err.message);
         if (callback) callback({ success: false, message: err.message });
@@ -272,6 +346,21 @@ export const initSocket = (server) => {
 
         console.log(`[Game] ${socket.user.name} invited ${recipient.name} to Tic-Tac-Toe`);
         if (callback) callback({ success: true, invite });
+
+        // If recipient is Chatbot, auto-accept challenge!
+        const recipientDoc = await User.findById(recipient._id);
+        if (recipientDoc?.isBot || recipientDoc?.email === 'chatbot@chatplay.ai') {
+          setTimeout(() => {
+            const newGame = gameManager.startNewGame(conversationId, socket.user, recipientDoc);
+            const playerXId = (newGame.players.X.id || newGame.players.X._id).toString();
+            const playerOId = (newGame.players.O.id || newGame.players.O._id).toString();
+
+            io.to(conversationId).emit('game:started', newGame);
+            io.to(`user:${playerXId}`).emit('game:started', newGame);
+            io.to(`user:${playerOId}`).emit('game:started', newGame);
+            console.log(`[Game] Chatbot automatically accepted match in room ${conversationId}`);
+          }, 800);
+        }
       } catch (err) {
         console.error('Error handling game:invite:', err.message);
         if (callback) callback({ success: false, message: err.message });
@@ -330,7 +419,7 @@ export const initSocket = (server) => {
     });
 
     // D. Make a move on the board
-    socket.on('game:move', ({ gameId, cellIndex }, callback) => {
+    socket.on('game:move', async ({ gameId, cellIndex }, callback) => {
       try {
         const result = gameManager.playMove(gameId, userId, cellIndex);
 
@@ -349,6 +438,42 @@ export const initSocket = (server) => {
         io.to(`user:${playerOId}`).emit('game:updated', updatedGame);
 
         if (callback) callback({ success: true, game: updatedGame });
+
+        // If next turn is Chatbot, execute bot move automatically
+        try {
+          if (updatedGame.status === 'in_progress') {
+            const nextPlayer = updatedGame.players[updatedGame.turn];
+            if (nextPlayer?.id) {
+              const nextPlayerUser = await User.findById(nextPlayer.id);
+              if (nextPlayerUser?.isBot || nextPlayerUser?.email === 'chatbot@chatplay.ai') {
+                setTimeout(() => {
+                  const currentLive = gameManager.getGame(gameId);
+                  if (currentLive && currentLive.status === 'in_progress' && currentLive.turn === updatedGame.turn) {
+                    const freeIndices = currentLive.board
+                      .map((val, idx) => (val === null ? idx : null))
+                      .filter((v) => v !== null);
+
+                    if (freeIndices.length > 0) {
+                      const chosen = freeIndices.includes(4)
+                        ? 4
+                        : freeIndices[Math.floor(Math.random() * freeIndices.length)];
+                      const botResult = gameManager.playMove(gameId, nextPlayer.id, chosen);
+                      if (botResult.success) {
+                        const botGame = botResult.game;
+                        io.to(botGame.conversationId).emit('game:updated', botGame);
+                        io.to(`user:${playerXId}`).emit('game:updated', botGame);
+                        io.to(`user:${playerOId}`).emit('game:updated', botGame);
+                        console.log(`[Game] Chatbot placed ${currentLive.turn} at cell ${chosen}`);
+                      }
+                    }
+                  }
+                }, 700);
+              }
+            }
+          }
+        } catch (botMoveErr) {
+          console.warn('Bot move error:', botMoveErr.message);
+        }
       } catch (err) {
         console.error('Error playing game move:', err.message);
         if (callback) callback({ success: false, message: err.message });

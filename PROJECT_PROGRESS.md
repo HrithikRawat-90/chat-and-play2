@@ -30,10 +30,19 @@
   - Players can accept challenges and immediately click cells to play Tic-Tac-Toe in real time.
 - **Local File Uploads**: Users can upload any image directly from their local computer/laptop via `<input type="file" />` with base64 Data URLs, or pick from gallery/URL.
 - **Audio Feedback**: Modern native Web Audio API chimes for sent/received messages, game moves, victories, and challenges.
-- **Unified Deployment & Testing**: Single-port production server (`PORT=5000`), `render.yaml` configuration, and 5 automated test suites with 43 tests passing.
+- **Gemini AI Integration & Chatbot User**:
+  - Created permanent system AI user `Chatbot` (`chatbot@chatplay.ai`) with `isBot: true` and bot avatar.
+  - Chatbot responds in real-time to messages sent in conversation using Google Gemini API (`@google/genai`).
+  - Added modern model fallback sequence: `gemini-3.8-flash` -> `gemini-3.5-flash-lite` -> `gemini-3.1-flash-lite` -> `gemini-2.5-flash` -> `gemini-2.0-flash` -> `gemini-1.5-flash`.
+  - Chatbot automatically accepts "Play Together" Tic-Tac-Toe game invitations and plays automated moves.
+  - Added Gemini AI auto-write & suggestion button directly to the right of the image icon in `MessageInput.jsx`.
+  - When draft is present: Gemini rewrites and polishes the draft.
+  - When draft is empty: Gemini suggests 3 quick-reply contextual chips above the input field.
+  - Added placeholder `GEMINI_API_KEY=your_gemini_api_key_here` in `backend/.env` and `backend/.env.example`.
+- **Unified Deployment & Testing**: Single-port production server (`PORT=5000`), `render.yaml` configuration, and 6 automated test suites with 50 tests passing.
 
 ## 4. Current Work
-All requested fixes (the 3 right-sidebar contact actions, real-time chat loading without reload, and multiplayer game challenge acceptance/playability) are implemented, verified with automated tests, and tested against production builds.
+All requested Gemini AI features (Chatbot companion, model fallback, .env placeholder, and AI Suggestion / Auto-write button directly right of the image icon) are implemented, verified with automated tests, and tested against production builds.
 
 ## 5. Files Created or Modified
 - `backend/models/User.js`: Added `blockedUsers` array to user schema.

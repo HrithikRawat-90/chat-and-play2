@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useChat } from '../../context/ChatContext';
 import { sounds } from '../../services/soundEffects';
+import api from '../../services/api';
 import {
   ChevronRight,
   Smile,
@@ -10,6 +11,8 @@ import {
   X,
   Loader2,
   Upload,
+  Sparkles,
+  Wand2,
 } from 'lucide-react';
 
 const COMMON_EMOJIS = ['😀', '😂', '🔥', '💜', '🎮', '👍', '🎉', '✨', '😎', '🚀'];
@@ -42,10 +45,46 @@ const MessageInput = () => {
   const [showImageModal, setShowImageModal] = useState(false);
   const [customImageUrl, setCustomImageUrl] = useState('');
   const [sending, setSending] = useState(false);
+  const [loadingAi, setLoadingAi] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [aiNotification, setAiNotification] = useState('');
 
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+
+  const handleAiSuggest = async () => {
+    if (loadingAi) return;
+    setLoadingAi(true);
+    setAiNotification('');
+
+    try {
+      const res = await api.post('/ai/suggest', {
+        conversationId: activeConversation?._id,
+        draft: text,
+      });
+
+      if (res.data?.success) {
+        if (text.trim().length > 0 && res.data.suggestedText) {
+          setText(res.data.suggestedText);
+          setAiNotification('✨ Gemini polished your draft!');
+          setTimeout(() => setAiNotification(''), 3500);
+        } else if (res.data.suggestions && res.data.suggestions.length > 0) {
+          setAiSuggestions(res.data.suggestions);
+          setText(res.data.suggestions[0]);
+          inputRef.current?.focus();
+          setAiNotification('✨ Gemini suggested a reply!');
+          setTimeout(() => setAiNotification(''), 3500);
+        }
+      }
+    } catch (err) {
+      console.warn('AI Suggest failed:', err.message);
+      setAiNotification('Could not reach Gemini AI');
+      setTimeout(() => setAiNotification(''), 3000);
+    } finally {
+      setLoadingAi(false);
+    }
+  };
 
   const handleTextChange = (e) => {
     setText(e.target.value);
@@ -237,6 +276,57 @@ const MessageInput = () => {
         </div>
       )}
 
+      {/* AI Suggestion Notification Banner */}
+      {aiNotification && (
+        <div className="mb-2 px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/40 text-purple-200 text-xs flex items-center justify-between gap-2 shadow-lg animate-fadeIn">
+          <div className="flex items-center gap-1.5 font-medium">
+            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <span>{aiNotification}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAiNotification('')}
+            className="text-purple-400 hover:text-white"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
+      {/* AI Quick Reply Chips */}
+      {aiSuggestions.length > 0 && (
+        <div className="mb-2 p-2 rounded-xl bg-[#160f2d] border border-purple-800/40 flex items-center justify-between gap-2 animate-fadeIn">
+          <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
+            <span className="text-[11px] font-semibold text-purple-300/80 flex items-center gap-1 flex-shrink-0">
+              <Sparkles className="w-3 h-3 text-purple-400" />
+              Suggestions:
+            </span>
+            {aiSuggestions.map((suggestion, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setText(suggestion);
+                  setAiSuggestions([]);
+                  inputRef.current?.focus();
+                }}
+                className="px-2.5 py-1 rounded-lg bg-purple-900/40 hover:bg-purple-800/60 text-purple-200 hover:text-white text-xs font-medium whitespace-nowrap border border-purple-700/30 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setAiSuggestions([])}
+            className="p-1 text-purple-400 hover:text-white rounded-md flex-shrink-0"
+            title="Dismiss suggestions"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Message Input Pill Bar */}
       <form onSubmit={handleSend} className="flex items-center gap-1.5 sm:gap-2">
         <button
@@ -268,6 +358,29 @@ const MessageInput = () => {
           title="Attach image"
         >
           <Image className="w-5 h-5" />
+        </button>
+
+        {/* Gemini AI Auto-Write / Suggest Button (Directly Right of Image Icon) */}
+        <button
+          type="button"
+          onClick={handleAiSuggest}
+          disabled={loadingAi}
+          className={`p-2 rounded-xl transition-all cursor-pointer relative group ${
+            loadingAi
+              ? 'text-purple-300 bg-purple-900/50 animate-pulse'
+              : 'text-purple-400 hover:text-purple-200 hover:bg-purple-900/40'
+          }`}
+          title={
+            text.trim()
+              ? 'Gemini AI: Polish & rewrite draft'
+              : 'Gemini AI: Write or suggest a message'
+          }
+        >
+          {loadingAi ? (
+            <Loader2 className="w-5 h-5 animate-spin text-purple-300" />
+          ) : (
+            <Sparkles className="w-5 h-5 text-purple-400 group-hover:text-purple-200 transition-colors group-hover:scale-110" />
+          )}
         </button>
 
         {/* Text Input */}

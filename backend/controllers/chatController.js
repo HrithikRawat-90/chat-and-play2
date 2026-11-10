@@ -13,7 +13,7 @@ export const getConversations = async (req, res) => {
     const conversations = await Conversation.find({
       participants: currentUserId,
     })
-      .populate('participants', 'name email profilePicture bio isOnline lastSeen')
+      .populate('participants', 'name email profilePicture bio isOnline lastSeen isBot')
       .populate('lastMessage.sender', 'name')
       .sort({ updatedAt: -1 });
 
@@ -64,7 +64,7 @@ export const createConversation = async (req, res) => {
     // Check if conversation already exists between these 2 users
     let conversation = await Conversation.findOne({
       participants: { $all: [currentUserId, recipientId] },
-    }).populate('participants', 'name email profilePicture bio isOnline lastSeen');
+    }).populate('participants', 'name email profilePicture bio isOnline lastSeen isBot');
 
     if (!conversation) {
       conversation = await Conversation.create({
@@ -78,7 +78,7 @@ export const createConversation = async (req, res) => {
 
       conversation = await Conversation.findById(conversation._id).populate(
         'participants',
-        'name email profilePicture bio isOnline lastSeen'
+        'name email profilePicture bio isOnline lastSeen isBot'
       );
     }
 
