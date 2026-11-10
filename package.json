@@ -1,0 +1,30 @@
+{
+  "name": "chat-and-play-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MERN Real-Time Chat Application with Multiplayer Gaming (Chat & Play)",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "build:client": "cd frontend && npm run build",
+    "test:auth": "cd backend && node test-auth.js",
+    "test:chat": "cd backend && node test-chat.js",
+    "test:socket": "cd backend && node test-socket.js",
+    "test:game": "cd backend && node test-game.js",
+    "test:e2e": "cd backend && node test-e2e.js",
+    "test": "npm run test:auth && npm run test:chat && npm run test:socket && npm run test:game && npm run test:e2e"
+  },
+  "keywords": [
+    "mern",
+    "chat",
+    "socketio",
+    "react",
+    "tailwind",
+    "express",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC"
+}
