@@ -79,14 +79,14 @@ export const generateGeminiText = async ({ prompt, contents, systemInstruction }
         contents: inputContents,
         config: systemInstruction
           ? {
-              systemInstruction,
-              temperature: 0.7,
-              maxOutputTokens: 500,
-            }
+            systemInstruction,
+            temperature: 0.7,
+            maxOutputTokens: 500,
+          }
           : {
-              temperature: 0.7,
-              maxOutputTokens: 500,
-            },
+            temperature: 0.7,
+            maxOutputTokens: 500,
+          },
       });
 
       const text = response.text || (response.candidates?.[0]?.content?.parts?.[0]?.text ?? '');
@@ -168,7 +168,7 @@ Return ONLY the improved message text, nothing else. No quotes, no explanations.
   const contextSnippet = lastOtherMessage ? lastOtherMessage.text : 'Hey, what are you up to?';
 
   const systemInstruction = `You are a smart chat assistant. Based on the partner's latest message in a chat, generate exactly 3 short, natural, friendly reply options that the user could send with one click.
-Format your output as a simple JSON array of 3 strings, e.g. ["Sounds good to me!", "Tell me more!", "Down for a game of Tic-Tac-Toe? 🎮"].
+Format your output as a simple JSON array of 3 strings, e.g. ["Sounds good to me!", "Tell me more!", "Down for a game of Tic-Tac-Toe? 🎮"]. don't use these text again and again if user ask for feature then only tell them about it
 Do NOT include markdown formatting or backticks around the JSON.`;
 
   const prompt = `Partner said: "${contextSnippet}"\n\nGenerate 3 short quick reply options:`;
