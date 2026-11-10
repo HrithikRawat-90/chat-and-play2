@@ -19,7 +19,9 @@ export const GameProvider = ({ children }) => {
 
     const handleInviteReceived = (invite) => {
       console.log('[Game] Invitation received:', invite);
-      if (invite.sender.id !== user?._id) {
+      const currentUserId = (user?._id || user?.id)?.toString();
+      const senderId = (invite.sender.id || invite.sender._id)?.toString();
+      if (senderId !== currentUserId) {
         setIncomingInvite(invite);
       }
     };
@@ -88,7 +90,12 @@ export const GameProvider = ({ children }) => {
     (conversationId) => {
       if (!socket || !conversationId) return;
       socket.emit('game:accept', { conversationId }, (res) => {
-        if (!res?.success) {
+        if (res?.success && res?.game) {
+          setActiveGame(res.game);
+          setIncomingInvite(null);
+          setOutgoingInvite(null);
+          setErrorMessage('');
+        } else if (!res?.success) {
           setErrorMessage(res?.message || 'Could not accept game.');
         }
       });

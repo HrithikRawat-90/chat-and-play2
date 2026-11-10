@@ -14,10 +14,12 @@ const GameInviteBanner = () => {
   const { activeConversation, getOtherParticipant } = useChat();
 
   const contact = getOtherParticipant(activeConversation);
-  const convId = activeConversation?._id;
+  const convId = (activeConversation?._id || activeConversation?.id)?.toString();
+  const incomingConvId = (incomingInvite?.conversationId?._id || incomingInvite?.conversationId)?.toString();
+  const outgoingConvId = (outgoingInvite?.conversationId?._id || outgoingInvite?.conversationId)?.toString();
 
-  // 1. Incoming Challenge for active conversation
-  if (incomingInvite && incomingInvite.conversationId === convId) {
+  // 1. Incoming Challenge (displayed if matching active chat or general)
+  if (incomingInvite && (!convId || incomingConvId === convId)) {
     return (
       <div className="mx-4 my-2 p-3.5 rounded-2xl bg-gradient-to-r from-purple-900/90 via-[#231846] to-indigo-900/90 border border-purple-500/40 shadow-xl shadow-purple-950/60 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
         <div className="flex items-center gap-3">
@@ -36,15 +38,15 @@ const GameInviteBanner = () => {
 
         <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end">
           <button
-            onClick={() => rejectInvite(convId)}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-purple-700/50 hover:bg-purple-900/40 text-purple-300 hover:text-white text-xs font-medium transition-colors"
+            onClick={() => rejectInvite(incomingConvId)}
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-purple-700/50 hover:bg-purple-900/40 text-purple-300 hover:text-white text-xs font-medium transition-colors cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
             <span>Decline</span>
           </button>
 
           <button
-            onClick={() => acceptInvite(convId)}
+            onClick={() => acceptInvite(incomingConvId)}
             className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md shadow-purple-600/30 transition-all active:scale-95 cursor-pointer"
           >
             <Check className="w-3.5 h-3.5" />
@@ -56,7 +58,7 @@ const GameInviteBanner = () => {
   }
 
   // 2. Outgoing Challenge waiting for response
-  if (outgoingInvite && outgoingInvite.conversationId === convId) {
+  if (outgoingInvite && (!convId || outgoingConvId === convId)) {
     return (
       <div className="mx-4 my-2 p-3 rounded-2xl bg-[#1a1236]/90 border border-purple-800/40 shadow-lg flex items-center justify-between gap-3 animate-fadeIn">
         <div className="flex items-center gap-2.5">

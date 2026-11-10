@@ -17,12 +17,14 @@ const TicTacToeModal = () => {
 
   if (!activeGame) return null;
 
-  const currentUserId = user?._id?.toString();
+  const currentUserId = (user?._id || user?.id)?.toString();
   const playerX = activeGame.players.X;
   const playerO = activeGame.players.O;
+  const playerXId = (playerX?.id || playerX?._id)?.toString();
+  const playerOId = (playerO?.id || playerO?._id)?.toString();
 
-  const isUserX = playerX.id === currentUserId;
-  const isUserO = playerO.id === currentUserId;
+  const isUserX = Boolean(currentUserId && playerXId === currentUserId);
+  const isUserO = Boolean(currentUserId && playerOId === currentUserId);
   const mySymbol = isUserX ? 'X' : isUserO ? 'O' : null;
 
   const isMyTurn = activeGame.status === 'in_progress' && activeGame.turn === mySymbol;

@@ -43,17 +43,34 @@ export const ChatProvider = ({ children }) => {
       const res = await api.get('/conversations');
       if (res.data.success) {
         setConversations(res.data.conversations);
+        // Auto-select first conversation on desktop if none selected
+        if (!activeConversationRef.current && res.data.conversations.length > 0 && typeof window !== 'undefined' && window.innerWidth >= 768) {
+          const first = res.data.conversations[0];
+          setActiveConversation(first);
+          fetchMessages(first._id);
+          joinConversation(first._id);
+        }
       }
     } catch (err) {
       console.warn('Could not fetch conversations:', err.message);
     } finally {
       setLoadingConversations(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchMessages, joinConversation]);
 
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  // Ensure active conversation room is joined whenever socket connects
+  useEffect(() => {
+    if (isConnected && activeConversationRef.current) {
+      const convId = (activeConversationRef.current._id || activeConversationRef.current.id)?.toString();
+      if (convId) {
+        joinConversation(convId);
+      }
+    }
+  }, [isConnected, joinConversation]);
 
   // Fetch messages when activeConversation changes
   const fetchMessages = useCallback(async (conversationId) => {
@@ -73,13 +90,17 @@ export const ChatProvider = ({ children }) => {
 
   // Handle conversation switching with socket room management
   const selectConversation = (conv) => {
-    if (activeConversationRef.current && activeConversationRef.current._id !== conv._id) {
-      leaveConversation(activeConversationRef.current._id);
+    if (!conv) return;
+    const currentActiveId = (activeConversationRef.current?._id || activeConversationRef.current?.id)?.toString();
+    const newConvId = (conv._id || conv.id)?.toString();
+
+    if (currentActiveId && currentActiveId !== newConvId) {
+      leaveConversation(currentActiveId);
     }
     setActiveConversation(conv);
     setMobileView('chat');
-    joinConversation(conv._id);
-    fetchMessages(conv._id);
+    joinConversation(newConvId);
+    fetchMessages(newConvId);
   };
 
   // Socket event listener for real-time messages & conversation updates
@@ -87,23 +108,30 @@ export const ChatProvider = ({ children }) => {
     if (!socket) return;
 
     const handleMessageReceive = (newMsg) => {
-      // 1. Play incoming message chime if from opponent
-      if (newMsg.senderId?._id !== user?._id && newMsg.senderId !== user?._id) {
+      const msgSenderId = (newMsg.senderId?._id || newMsg.senderId)?.toString();
+      const currentUserId = (user?._id || user?.id)?.toString();
+      const msgConvId = (newMsg.conversationId?._id || newMsg.conversationId)?.toString();
+      const activeConvId = (activeConversationRef.current?._id || activeConversationRef.current?.id)?.toString();
+
+      // 1. Play incoming message chime if from partner
+      if (msgSenderId && msgSenderId !== currentUserId) {
         sounds.playMessageReceived();
       }
 
       // 2. If message belongs to active chat, add to feed
-      if (activeConversationRef.current && activeConversationRef.current._id === newMsg.conversationId) {
+      if (activeConvId && activeConvId === msgConvId) {
         setMessages((prev) => {
-          if (prev.some((m) => m._id === newMsg._id)) return prev;
+          const newId = (newMsg._id || newMsg.id)?.toString();
+          if (prev.some((m) => (m._id || m.id)?.toString() === newId)) return prev;
           return [...prev, newMsg];
         });
       }
 
       // 3. Update conversation list preview
       setConversations((prev) => {
-        const index = prev.findIndex((c) => c._id === newMsg.conversationId);
+        const index = prev.findIndex((c) => (c._id || c.id)?.toString() === msgConvId);
         if (index === -1) {
+          // New conversation created by partner! Re-fetch immediately
           fetchConversations();
           return prev;
         }
@@ -118,21 +146,25 @@ export const ChatProvider = ({ children }) => {
           updatedAt: newMsg.createdAt,
         };
 
-        const remaining = prev.filter((c) => c._id !== newMsg.conversationId);
+        const remaining = prev.filter((c) => (c._id || c.id)?.toString() !== msgConvId);
         return [updatedConv, ...remaining];
       });
     };
 
     const handleConversationUpdated = ({ conversationId, lastMessage, updatedAt }) => {
+      const targetId = (conversationId?._id || conversationId)?.toString();
       setConversations((prev) => {
-        const index = prev.findIndex((c) => c._id === conversationId);
-        if (index === -1) return prev;
+        const index = prev.findIndex((c) => (c._id || c.id)?.toString() === targetId);
+        if (index === -1) {
+          fetchConversations();
+          return prev;
+        }
         const updatedConv = {
           ...prev[index],
           lastMessage,
           updatedAt,
         };
-        const remaining = prev.filter((c) => c._id !== conversationId);
+        const remaining = prev.filter((c) => (c._id || c.id)?.toString() !== targetId);
         return [updatedConv, ...remaining];
       });
     };
@@ -144,7 +176,7 @@ export const ChatProvider = ({ children }) => {
       socket.off('message:receive', handleMessageReceive);
       socket.off('conversation:updated', handleConversationUpdated);
     };
-  }, [socket, fetchConversations, user?._id]);
+  }, [socket, fetchConversations, user?._id, user?.id]);
 
   // Start or open conversation with another user
   const startConversationWithUser = async (recipientId) => {
@@ -178,6 +210,11 @@ export const ChatProvider = ({ children }) => {
           { conversationId, text, imageUrl, replyTo },
           (response) => {
             if (response && response.success) {
+              setMessages((prev) => {
+                const newId = (response.message._id || response.message.id)?.toString();
+                if (prev.some((m) => (m._id || m.id)?.toString() === newId)) return prev;
+                return [...prev, response.message];
+              });
               resolve(response.message);
             } else {
               reject(new Error(response?.message || 'Socket message delivery failed'));
@@ -201,10 +238,40 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  // Delete conversation and messages
+  const deleteActiveConversation = async (conversationId) => {
+    const targetId = (conversationId || activeConversation?._id || activeConversation?.id)?.toString();
+    if (!targetId) return { success: false, message: 'No conversation selected' };
+
+    try {
+      const res = await api.delete(`/conversations/${targetId}`);
+      if (res.data.success) {
+        setConversations((prev) =>
+          prev.filter((c) => (c._id || c.id)?.toString() !== targetId)
+        );
+        const activeId = (activeConversationRef.current?._id || activeConversationRef.current?.id)?.toString();
+        if (activeId === targetId) {
+          setActiveConversation(null);
+          setMessages([]);
+        }
+        return { success: true };
+      }
+      return { success: false, message: res.data.message };
+    } catch (err) {
+      console.error('Failed to delete conversation:', err.message);
+      return { success: false, message: err.response?.data?.message || err.message };
+    }
+  };
+
   // Helper to extract the contact (the other participant in a 1-on-1 conversation)
   const getOtherParticipant = (conv) => {
     if (!conv || !conv.participants) return null;
-    return conv.participants.find((p) => p._id !== user?._id) || conv.participants[0];
+    const currentUserId = (user?._id || user?.id)?.toString();
+    return (
+      conv.participants.find(
+        (p) => (p._id || p.id)?.toString() !== currentUserId
+      ) || conv.participants[0]
+    );
   };
 
   const toggleRightSidebar = () => {
@@ -237,6 +304,7 @@ export const ChatProvider = ({ children }) => {
         selectConversation,
         startConversationWithUser,
         sendMessage,
+        deleteActiveConversation,
         fetchConversations,
         getOtherParticipant,
         isUserOnline,

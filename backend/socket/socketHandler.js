@@ -60,6 +60,17 @@ export const initSocket = (server) => {
     // Join personal user room for direct notifications
     socket.join(`user:${userId}`);
 
+    // Auto-join all existing conversation rooms for this user
+    try {
+      const userConvs = await Conversation.find({ participants: userId }).select('_id');
+      userConvs.forEach((c) => {
+        socket.join(c._id.toString());
+      });
+      console.log(`[Socket] ${socket.user.name} auto-joined ${userConvs.length} conversation rooms`);
+    } catch (roomErr) {
+      console.warn('Could not auto-join conversation rooms:', roomErr.message);
+    }
+
     // Update user status in DB
     try {
       await User.findByIdAndUpdate(userId, {
@@ -170,11 +181,10 @@ export const initSocket = (server) => {
           'name profilePicture bio isOnline'
         );
 
-        // Emit message:receive to all participants in this conversation room
+        // Emit message:receive to conversation room AND directly to participants' personal rooms
         io.to(conversationId).emit('message:receive', populatedMsg);
-
-        // Also notify participants' personal user rooms to update sidebar lastMessage
         conversation.participants.forEach((pId) => {
+          io.to(`user:${pId.toString()}`).emit('message:receive', populatedMsg);
           io.to(`user:${pId.toString()}`).emit('conversation:updated', {
             conversationId,
             lastMessage: conversation.lastMessage,
@@ -251,9 +261,12 @@ export const initSocket = (server) => {
           return;
         }
 
+        // Ensure inviter socket has joined the conversation room
+        socket.join(conversationId);
+
         const invite = gameManager.createInvite(conversationId, socket.user, recipient);
 
-        // Broadcast invite to the conversation room and recipient personal room
+        // Broadcast invite to conversation room and directly to recipient's personal room
         io.to(conversationId).emit('game:invite:received', invite);
         io.to(`user:${recipient._id.toString()}`).emit('game:invite:received', invite);
 
@@ -274,6 +287,9 @@ export const initSocket = (server) => {
           return;
         }
 
+        // Ensure acceptor socket has joined the conversation room
+        socket.join(conversationId);
+
         // Creator is Player X, Acceptor is Player O
         const newGame = gameManager.startNewGame(
           conversationId,
@@ -281,7 +297,14 @@ export const initSocket = (server) => {
           invite.recipient
         );
 
+        const playerXId = (newGame.players.X.id || newGame.players.X._id).toString();
+        const playerOId = (newGame.players.O.id || newGame.players.O._id).toString();
+
+        // Broadcast to conversation room AND directly to both players
         io.to(conversationId).emit('game:started', newGame);
+        io.to(`user:${playerXId}`).emit('game:started', newGame);
+        io.to(`user:${playerOId}`).emit('game:started', newGame);
+
         console.log(`[Game] Tic-Tac-Toe match started in room ${conversationId}: ${invite.sender.name} (X) vs ${invite.recipient.name} (O)`);
 
         if (callback) callback({ success: true, game: newGame });
@@ -293,11 +316,16 @@ export const initSocket = (server) => {
 
     // C. Reject Game Invitation
     socket.on('game:reject', ({ conversationId }) => {
+      const invite = gameManager.getInvite(conversationId);
       gameManager.clearInvite(conversationId);
-      io.to(conversationId).emit('game:rejected', {
+      const payload = {
         conversationId,
         rejectedBy: socket.user.name,
-      });
+      };
+      io.to(conversationId).emit('game:rejected', payload);
+      if (invite?.sender?.id) {
+        io.to(`user:${invite.sender.id}`).emit('game:rejected', payload);
+      }
       console.log(`[Game] Invitation in room ${conversationId} rejected by ${socket.user.name}`);
     });
 
@@ -312,8 +340,13 @@ export const initSocket = (server) => {
         }
 
         const updatedGame = result.game;
-        // Broadcast updated game state to conversation room
+        const playerXId = (updatedGame.players.X.id || updatedGame.players.X._id).toString();
+        const playerOId = (updatedGame.players.O.id || updatedGame.players.O._id).toString();
+
+        // Broadcast updated game state to conversation room AND to both player rooms
         io.to(updatedGame.conversationId).emit('game:updated', updatedGame);
+        io.to(`user:${playerXId}`).emit('game:updated', updatedGame);
+        io.to(`user:${playerOId}`).emit('game:updated', updatedGame);
 
         if (callback) callback({ success: true, game: updatedGame });
       } catch (err) {
@@ -326,7 +359,13 @@ export const initSocket = (server) => {
     socket.on('game:rematch', ({ gameId }) => {
       const updatedGame = gameManager.rematch(gameId);
       if (updatedGame) {
+        const playerXId = (updatedGame.players.X.id || updatedGame.players.X._id).toString();
+        const playerOId = (updatedGame.players.O.id || updatedGame.players.O._id).toString();
+
         io.to(updatedGame.conversationId).emit('game:updated', updatedGame);
+        io.to(`user:${playerXId}`).emit('game:updated', updatedGame);
+        io.to(`user:${playerOId}`).emit('game:updated', updatedGame);
+
         console.log(`[Game] Rematch started for game ${gameId}`);
       }
     });
@@ -335,10 +374,17 @@ export const initSocket = (server) => {
     socket.on('game:exit', ({ gameId }) => {
       const endedGame = gameManager.endGame(gameId);
       if (endedGame) {
-        io.to(endedGame.conversationId).emit('game:ended', {
+        const playerXId = (endedGame.players.X.id || endedGame.players.X._id).toString();
+        const playerOId = (endedGame.players.O.id || endedGame.players.O._id).toString();
+        const payload = {
           gameId,
           exitedBy: socket.user.name,
-        });
+        };
+
+        io.to(endedGame.conversationId).emit('game:ended', payload);
+        io.to(`user:${playerXId}`).emit('game:ended', payload);
+        io.to(`user:${playerOId}`).emit('game:ended', payload);
+
         console.log(`[Game] Game ${gameId} ended by ${socket.user.name}`);
       }
     });

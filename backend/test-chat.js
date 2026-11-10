@@ -130,7 +130,45 @@ async function runModule2Tests() {
     console.assert(unauthRes.status === 403, `Expected 403 Forbidden, got ${unauthRes.status}`);
     console.log('✓ Unauthorized access successfully prevented (403)');
 
-    console.log('\n--- ALL MODULE 2 USER & CHAT TESTS PASSED! ---');
+    // 10. Test Block / Unblock Contact
+    console.log('[Test 10] Testing Block and Unblock contact endpoints...');
+    const blockRes = await makeRequest(`/api/users/block/${userB._id}`, 'POST', null, tokenA);
+    console.assert(blockRes.status === 200, `Block failed: ${blockRes.status}`);
+    console.assert(blockRes.body.isBlocked === true, 'User should be marked blocked');
+    console.log('✓ User blocked successfully');
+
+    const blockedListRes = await makeRequest('/api/users/me/blocked', 'GET', null, tokenA);
+    console.assert(blockedListRes.body.blockedUsers.includes(userB._id), 'User B should be in blocked list');
+    console.log('✓ Blocked list retrieved and verified');
+
+    const unblockRes = await makeRequest(`/api/users/block/${userB._id}`, 'POST', null, tokenA);
+    console.assert(unblockRes.body.isBlocked === false, 'User should now be unblocked');
+    console.log('✓ User unblocked successfully');
+
+    // 11. Test Report Contact
+    console.log('[Test 11] Testing Report Contact endpoint...');
+    const reportRes = await makeRequest('/api/users/report', 'POST', {
+      reportedUserId: userB._id,
+      reason: 'Spam or unwanted advertising',
+      details: 'Sending too many repetitive messages',
+    }, tokenA);
+    console.assert(reportRes.status === 200, `Report failed: ${reportRes.status}`);
+    console.assert(reportRes.body.success === true, 'Report submission failed');
+    console.log('✓ Report submitted successfully');
+
+    // 12. Test Delete Chat Conversation
+    console.log('[Test 12] Testing Delete Chat Conversation endpoint...');
+    const deleteConvRes = await makeRequest(`/api/conversations/${conversationId}`, 'DELETE', null, tokenA);
+    console.assert(deleteConvRes.status === 200, `Delete conversation failed: ${deleteConvRes.status}`);
+    console.assert(deleteConvRes.body.success === true, 'Delete conversation should succeed');
+    console.log('✓ Conversation deleted successfully');
+
+    // Verify messages are also deleted
+    const verifyMsgsRes = await makeRequest(`/api/messages/${conversationId}`, 'GET', null, tokenA);
+    console.assert(verifyMsgsRes.status === 404, 'Messages for deleted conversation should return 404');
+    console.log('✓ Messages cleaned up and verified');
+
+    console.log('\n--- ALL MODULE 2 USER, CHAT & ACTIONS TESTS PASSED! ---');
     process.exit(0);
   } catch (err) {
     console.error('Module 2 Test error:', err);

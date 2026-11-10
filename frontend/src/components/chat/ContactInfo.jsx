@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useChat } from '../../context/ChatContext';
+import api from '../../services/api';
 import {
   X,
   ChevronRight,
@@ -8,7 +9,19 @@ import {
   Flag,
   Trash2,
   Image as ImageIcon,
+  Check,
+  AlertTriangle,
+  ShieldAlert,
+  Loader2,
 } from 'lucide-react';
+
+const REPORT_REASONS = [
+  'Spam or unwanted advertising',
+  'Harassment or abusive behavior',
+  'Inappropriate content or avatar',
+  'Scam, fraud, or impersonation',
+  'Other violation',
+];
 
 const ContactInfo = () => {
   const {
@@ -18,33 +31,148 @@ const ContactInfo = () => {
     toggleRightSidebar,
     messages,
     isUserOnline,
+    deleteActiveConversation,
   } = useChat();
 
-  if (!isRightSidebarOpen) return null;
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [loadingBlock, setLoadingBlock] = useState(false);
+
+  // Modals state
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState(REPORT_REASONS[0]);
+  const [reportDetails, setReportDetails] = useState('');
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeletingChat, setIsDeletingChat] = useState(false);
+
+  // Toast feedback
+  const [toastMessage, setToastMessage] = useState('');
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 4000);
+  };
 
   const contact = getOtherParticipant(activeConversation);
-  if (!contact) return null;
+  const contactId = (contact?._id || contact?.id)?.toString();
+
+  // Check initial block status whenever contact changes
+  useEffect(() => {
+    if (!contactId) return;
+    let isMounted = true;
+    const checkBlocked = async () => {
+      try {
+        const res = await api.get('/users/me/blocked');
+        if (res.data.success && isMounted) {
+          const blockedIds = (res.data.blockedUsers || []).map((id) =>
+            typeof id === 'object' ? (id._id || id.id || id).toString() : id.toString()
+          );
+          setIsBlocked(blockedIds.includes(contactId));
+        }
+      } catch (err) {
+        console.warn('Could not retrieve blocked list:', err.message);
+      }
+    };
+    checkBlocked();
+    return () => {
+      isMounted = false;
+    };
+  }, [contactId]);
+
+  if (!isRightSidebarOpen || !contact) return null;
 
   const name = contact?.name || 'Contact Info';
+  const firstName = name.split(' ')[0];
   const avatar =
     contact?.profilePicture ||
     `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
   const bio = contact?.bio || 'Hey there! I am using Chat & Play.';
-  const isOnline = contact?._id ? isUserOnline(contact._id) : (contact?.isOnline ?? false);
+  const isOnline = contactId ? isUserOnline(contactId) : (contact?.isOnline ?? false);
 
   // Extract real shared images from current conversation messages
   const sharedMedia = (messages || [])
     .filter((m) => m.imageUrl && m.imageUrl.trim() !== '')
     .map((m) => m.imageUrl);
 
+  // Handle Block / Unblock Toggle
+  const handleToggleBlock = async () => {
+    if (!contactId || loadingBlock) return;
+    setLoadingBlock(true);
+    try {
+      const res = await api.post(`/users/block/${contactId}`);
+      if (res.data.success) {
+        setIsBlocked(res.data.isBlocked);
+        showToast(
+          res.data.isBlocked
+            ? `Blocked ${firstName}. They can no longer challenge you.`
+            : `Unblocked ${firstName}.`
+        );
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to update block status');
+    } finally {
+      setLoadingBlock(false);
+    }
+  };
+
+  // Handle Report Submission
+  const handleSubmitReport = async (e) => {
+    e.preventDefault();
+    if (!contactId || isSubmittingReport) return;
+    setIsSubmittingReport(true);
+    try {
+      const res = await api.post('/users/report', {
+        reportedUserId: contactId,
+        reason: reportReason,
+        details: reportDetails.trim(),
+      });
+      if (res.data.success) {
+        setShowReportModal(false);
+        setReportDetails('');
+        showToast('Report submitted. Our moderation team has received it.');
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to submit report');
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
+
+  // Handle Chat Deletion
+  const handleConfirmDelete = async () => {
+    if (isDeletingChat) return;
+    setIsDeletingChat(true);
+    try {
+      const res = await deleteActiveConversation();
+      if (res.success) {
+        setShowDeleteModal(false);
+        showToast('Chat history deleted.');
+      } else {
+        showToast(res.message || 'Could not delete chat');
+      }
+    } catch (err) {
+      showToast('Error deleting conversation');
+    } finally {
+      setIsDeletingChat(false);
+    }
+  };
+
   return (
-    <aside className="h-full w-full sm:w-80 lg:w-[320px] bg-[#130f24] border-l border-purple-900/30 flex flex-col flex-shrink-0 animate-fadeIn select-none overflow-y-auto">
+    <aside className="h-full w-full sm:w-80 lg:w-[320px] bg-[#130f24] border-l border-purple-900/30 flex flex-col flex-shrink-0 animate-fadeIn select-none overflow-y-auto relative">
+      {/* Toast Feedback */}
+      {toastMessage && (
+        <div className="absolute top-3 left-3 right-3 z-50 p-2.5 rounded-xl bg-purple-900/95 border border-purple-400 text-white text-xs text-center shadow-lg animate-fadeIn flex items-center justify-center gap-2">
+          <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="h-16 px-5 flex items-center justify-between border-b border-purple-900/30">
         <h3 className="font-semibold text-white text-base">Contact Info</h3>
         <button
           onClick={toggleRightSidebar}
-          className="p-1.5 rounded-lg text-purple-300/70 hover:text-white hover:bg-purple-900/40 transition-colors"
+          className="p-1.5 rounded-lg text-purple-300/70 hover:text-white hover:bg-purple-900/40 transition-colors cursor-pointer"
           title="Close panel"
         >
           <X className="w-5 h-5" />
@@ -65,8 +193,8 @@ const ContactInfo = () => {
         </div>
 
         <h4 className="font-bold text-white text-lg tracking-tight">{name}</h4>
-        <p className="text-xs text-purple-400 font-medium mt-0.5 mb-2 hover:underline cursor-pointer">
-          View Profile
+        <p className="text-xs text-purple-400 font-medium mt-0.5 mb-2">
+          {contact.email}
         </p>
         <p className="text-xs text-purple-300/70 px-4 line-clamp-3 italic">
           "{bio}"
@@ -131,21 +259,159 @@ const ContactInfo = () => {
 
       {/* Action Options */}
       <div className="p-3 space-y-1 mt-auto">
-        <button className="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-purple-300 hover:text-white hover:bg-purple-950/40 rounded-xl transition-colors text-left cursor-pointer">
-          <Ban className="w-4 h-4 text-red-400/80" />
-          <span>Block {name.split(' ')[0]}</span>
+        {/* 1. Block / Unblock Contact Button */}
+        <button
+          onClick={handleToggleBlock}
+          disabled={loadingBlock}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium rounded-xl transition-all text-left cursor-pointer ${
+            isBlocked
+              ? 'text-emerald-300 bg-emerald-950/30 border border-emerald-500/30 hover:bg-emerald-950/50'
+              : 'text-purple-300 hover:text-white hover:bg-purple-950/40'
+          }`}
+        >
+          {loadingBlock ? (
+            <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+          ) : isBlocked ? (
+            <Check className="w-4 h-4 text-emerald-400" />
+          ) : (
+            <Ban className="w-4 h-4 text-red-400/80" />
+          )}
+          <span>{isBlocked ? `Unblock ${firstName}` : `Block ${firstName}`}</span>
         </button>
 
-        <button className="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-purple-300 hover:text-white hover:bg-purple-950/40 rounded-xl transition-colors text-left cursor-pointer">
+        {/* 2. Report Contact Button */}
+        <button
+          onClick={() => setShowReportModal(true)}
+          className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium text-purple-300 hover:text-white hover:bg-purple-950/40 rounded-xl transition-colors text-left cursor-pointer"
+        >
           <Flag className="w-4 h-4 text-amber-400/80" />
           <span>Report Contact</span>
         </button>
 
-        <button className="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-950/30 rounded-xl transition-colors text-left cursor-pointer">
+        {/* 3. Delete Chat Button */}
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-950/30 rounded-xl transition-colors text-left cursor-pointer"
+        >
           <Trash2 className="w-4 h-4" />
           <span>Delete Chat</span>
         </button>
       </div>
+
+      {/* Modal: Report Contact */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-[#16102e] border border-purple-800/50 rounded-2xl p-5 shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-purple-900/40">
+              <div className="flex items-center gap-2 text-amber-400">
+                <ShieldAlert className="w-5 h-5" />
+                <h3 className="font-semibold text-white text-sm">Report {name}</h3>
+              </div>
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="p-1 rounded-lg text-purple-400 hover:text-white hover:bg-purple-900/30"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitReport} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-purple-200/80 mb-2 font-medium">
+                  Select a reason for reporting:
+                </label>
+                <div className="space-y-1.5">
+                  {REPORT_REASONS.map((reason) => (
+                    <label
+                      key={reason}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-purple-950/50 cursor-pointer border border-purple-900/30"
+                    >
+                      <input
+                        type="radio"
+                        name="reportReason"
+                        value={reason}
+                        checked={reportReason === reason}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        className="text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-purple-200">{reason}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-purple-200/80 mb-1 font-medium">
+                  Additional Details (Optional):
+                </label>
+                <textarea
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  placeholder="Provide any additional context or details..."
+                  rows={3}
+                  className="w-full p-2.5 rounded-xl bg-[#0e0a1f] border border-purple-900/50 text-white placeholder-purple-400/40 focus:outline-none focus:border-purple-500 resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-purple-900/30">
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  className="px-3 py-1.5 rounded-xl border border-purple-800/40 text-purple-300 hover:text-white hover:bg-purple-900/30"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReport}
+                  className="px-4 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-medium flex items-center gap-1.5 cursor-pointer shadow-md shadow-amber-900/30"
+                >
+                  {isSubmittingReport && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Submit Report</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Confirm Delete Chat */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-[#16102e] border border-red-900/40 rounded-2xl p-5 shadow-2xl">
+            <div className="flex items-center gap-2.5 text-red-400 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-red-950/60 border border-red-800/40 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+              </div>
+              <h3 className="font-semibold text-white text-sm">Delete Chat with {firstName}?</h3>
+            </div>
+
+            <p className="text-xs text-purple-300/80 mb-5 leading-relaxed">
+              Are you sure? This will permanently delete the conversation and all messages exchanged with{' '}
+              <strong className="text-white">{name}</strong>. This action cannot be undone.
+            </p>
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="px-3.5 py-1.5 rounded-xl border border-purple-800/40 text-purple-300 hover:text-white hover:bg-purple-900/30 text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeletingChat}
+                className="px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-medium flex items-center gap-1.5 cursor-pointer shadow-md shadow-red-950/50"
+              >
+                {isDeletingChat && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>Delete Chat</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

@@ -1,6 +1,7 @@
 import Conversation from '../models/Conversation.js';
 import Message from '../models/Message.js';
 import User from '../models/User.js';
+import { gameManager } from '../games/gameManager.js';
 
 // @desc    Get user conversations
 // @route   GET /api/conversations
@@ -210,6 +211,56 @@ export const sendMessage = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Server error sending message.',
+    });
+  }
+};
+
+// @desc    Delete a conversation and all its messages
+// @route   DELETE /api/conversations/:id
+// @access  Private
+export const deleteConversation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user._id;
+
+    const conversation = await Conversation.findById(id);
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Conversation not found.',
+      });
+    }
+
+    const isMember = conversation.participants.some(
+      (p) => p.toString() === currentUserId.toString()
+    );
+    if (!isMember) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized to delete this conversation.',
+      });
+    }
+
+    // 1. Delete all messages for this conversation
+    await Message.deleteMany({ conversationId: id });
+
+    // 2. End any running game session
+    gameManager.endGameByConversation(id);
+    gameManager.clearInvite(id);
+
+    // 3. Delete the conversation document
+    await Conversation.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Conversation and all messages deleted successfully.',
+      conversationId: id,
+    });
+  } catch (error) {
+    console.error('Error deleting conversation:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error deleting conversation.',
     });
   }
 };
