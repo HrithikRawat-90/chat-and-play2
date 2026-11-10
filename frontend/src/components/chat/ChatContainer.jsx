@@ -22,13 +22,13 @@ const ChatContainer = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#090614] text-[#e2e8f0]">
+    <div className="flex h-screen h-[100dvh] w-screen overflow-hidden bg-[#090614] text-[#e2e8f0]">
       {/* 1. Left Sidebar */}
       <LeftSidebar />
 
       {/* 2. Center Chat Panel */}
       <main
-        className={`flex-1 flex flex-col min-w-0 bg-[#0d091d] relative ${
+        className={`flex-1 flex flex-col h-full min-w-0 bg-[#0d091d] relative overflow-hidden ${
           mobileView === 'chat' ? 'flex' : 'hidden md:flex'
         }`}
       >

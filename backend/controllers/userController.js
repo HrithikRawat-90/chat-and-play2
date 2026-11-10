@@ -18,7 +18,7 @@ export const getUsers = async (req, res) => {
     }
 
     const users = await User.find(query)
-      .select('name email profilePicture bio isOnline lastSeen isBot')
+      .select('name profilePicture bio isOnline lastSeen isBot')
       .sort({ isBot: -1, name: 1 })
       .limit(50);
 
@@ -42,7 +42,7 @@ export const getUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select(
-      'name email profilePicture bio isOnline lastSeen createdAt'
+      'name profilePicture bio isOnline lastSeen createdAt'
     );
 
     if (!user) {

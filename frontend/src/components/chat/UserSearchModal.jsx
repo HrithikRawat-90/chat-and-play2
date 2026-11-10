@@ -112,7 +112,7 @@ const UserSearchModal = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-purple-300/50 truncate">{u.bio || u.email}</p>
+                    <p className="text-xs text-purple-300/50 truncate">{u.bio || 'Chat & Play user'}</p>
                   </div>
                 </div>
 

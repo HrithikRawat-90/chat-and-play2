@@ -25,7 +25,7 @@ export const ChatProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [loadingConversations, setLoadingConversations] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [mobileView, setMobileView] = useState('list'); // 'list' | 'chat'
   const [activeTab, setActiveTab] = useState('chat');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -99,6 +99,10 @@ export const ChatProvider = ({ children }) => {
     }
     setActiveConversation(conv);
     setMobileView('chat');
+    // Ensure contact bio is always closed on mobile so user immediately sees chat messages
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsRightSidebarOpen(false);
+    }
     joinConversation(newConvId);
     fetchMessages(newConvId);
   };

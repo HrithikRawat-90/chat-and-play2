@@ -158,8 +158,15 @@ const ContactInfo = () => {
   };
 
   return (
-    <aside className="h-full w-full sm:w-80 lg:w-[320px] bg-[#130f24] border-l border-purple-900/30 flex flex-col flex-shrink-0 animate-fadeIn select-none overflow-y-auto relative">
-      {/* Toast Feedback */}
+    <>
+      {/* Mobile backdrop overlay to close bio */}
+      <div
+        onClick={toggleRightSidebar}
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden cursor-pointer"
+        aria-hidden="true"
+      />
+      <aside className="fixed inset-y-0 right-0 z-50 w-full sm:w-80 lg:static lg:w-[320px] lg:h-full bg-[#130f24] border-l border-purple-900/30 flex flex-col flex-shrink-0 animate-fadeIn select-none overflow-y-auto shadow-2xl lg:shadow-none">
+        {/* Toast Feedback */}
       {toastMessage && (
         <div className="absolute top-3 left-3 right-3 z-50 p-2.5 rounded-xl bg-purple-900/95 border border-purple-400 text-white text-xs text-center shadow-lg animate-fadeIn flex items-center justify-center gap-2">
           <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
@@ -192,10 +199,7 @@ const ContactInfo = () => {
           )}
         </div>
 
-        <h4 className="font-bold text-white text-lg tracking-tight">{name}</h4>
-        <p className="text-xs text-purple-400 font-medium mt-0.5 mb-2">
-          {contact.email}
-        </p>
+        <h4 className="font-bold text-white text-lg tracking-tight mb-1">{name}</h4>
         <p className="text-xs text-purple-300/70 px-4 line-clamp-3 italic">
           "{bio}"
         </p>
@@ -413,6 +417,7 @@ const ContactInfo = () => {
         </div>
       )}
     </aside>
+    </>
   );
 };
 
