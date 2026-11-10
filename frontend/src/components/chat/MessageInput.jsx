@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useChat } from '../../context/ChatContext';
+import { sounds } from '../../services/soundEffects';
 import {
   ChevronRight,
   Smile,
@@ -8,6 +9,7 @@ import {
   Mic,
   X,
   Loader2,
+  Upload,
 } from 'lucide-react';
 
 const COMMON_EMOJIS = ['😀', '😂', '🔥', '💜', '🎮', '👍', '🎉', '✨', '😎', '🚀'];
@@ -42,6 +44,7 @@ const MessageInput = () => {
   const [sending, setSending] = useState(false);
 
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
   const handleTextChange = (e) => {
@@ -56,6 +59,29 @@ const MessageInput = () => {
     }
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, WEBP, GIF).');
+      return;
+    }
+
+    // Limit to 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Please choose an image under 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setSelectedImage(event.target.result);
+      setShowImageModal(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSend = async (e) => {
     e?.preventDefault();
     if ((!text.trim() && !selectedImage) || sending) return;
@@ -65,6 +91,7 @@ const MessageInput = () => {
 
     setSending(true);
     try {
+      sounds.playMessageSent();
       await sendMessage(text.trim(), selectedImage);
       setText('');
       setSelectedImage('');
@@ -92,6 +119,15 @@ const MessageInput = () => {
 
   return (
     <div className="p-3 sm:p-4 bg-[#130f24] border-t border-purple-900/30 relative">
+      {/* Hidden File Input for Local Image Upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        accept="image/*"
+        className="hidden"
+      />
+
       {/* Emoji Picker Popup */}
       {showEmojiPicker && (
         <div className="absolute bottom-16 left-12 bg-[#1b1538] border border-purple-900/50 rounded-2xl p-2.5 shadow-2xl shadow-purple-950/80 z-40 flex items-center gap-2 animate-fadeIn">
@@ -111,9 +147,9 @@ const MessageInput = () => {
       {/* Image Attachment Modal */}
       {showImageModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-[#16102f] border border-purple-900/40 rounded-2xl p-5 shadow-2xl shadow-purple-950/80">
+          <div className="w-full max-w-md bg-[#16102f] border border-purple-900/40 rounded-2xl p-5 shadow-2xl shadow-purple-950/80 animate-fadeIn">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-white text-sm">Select Image Attachment</h3>
+              <h3 className="font-semibold text-white text-sm">Add Image Attachment</h3>
               <button
                 onClick={() => setShowImageModal(false)}
                 className="text-purple-400 hover:text-white"
@@ -122,7 +158,19 @@ const MessageInput = () => {
               </button>
             </div>
 
-            <p className="text-xs text-purple-300/60 mb-3">Choose a preset photo or paste any image URL:</p>
+            {/* Direct Local File Upload Button */}
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-3 px-4 border-2 border-dashed border-purple-600/50 hover:border-purple-400 rounded-xl bg-purple-950/30 hover:bg-purple-900/20 text-purple-200 text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <Upload className="w-4 h-4 text-purple-400" />
+                <span>Upload image from your computer</span>
+              </button>
+            </div>
+
+            <p className="text-xs text-purple-300/60 mb-2 font-medium">Or choose from preset gallery:</p>
 
             <div className="grid grid-cols-2 gap-2 mb-4">
               {PRESET_ATTACHMENTS.map((img, idx) => (
@@ -143,8 +191,8 @@ const MessageInput = () => {
               ))}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs text-purple-300/80">Custom Image URL</label>
+            <div className="space-y-1.5">
+              <label className="text-xs text-purple-300/80 font-medium">Or paste an Image URL</label>
               <div className="flex gap-2">
                 <input
                   type="url"
@@ -161,9 +209,9 @@ const MessageInput = () => {
                       setShowImageModal(false);
                     }
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium"
+                  className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium cursor-pointer"
                 >
-                  Use URL
+                  Attach
                 </button>
               </div>
             </div>
@@ -182,7 +230,7 @@ const MessageInput = () => {
           <span className="text-xs text-purple-200 truncate max-w-[200px]">Image attached</span>
           <button
             onClick={() => setSelectedImage('')}
-            className="p-1 rounded-md text-purple-400 hover:text-white hover:bg-purple-800/40"
+            className="p-1 rounded-md text-purple-400 hover:text-white hover:bg-purple-800/40 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -193,16 +241,17 @@ const MessageInput = () => {
       <form onSubmit={handleSend} className="flex items-center gap-1.5 sm:gap-2">
         <button
           type="button"
-          className="p-2 text-purple-300/70 hover:text-white hover:bg-purple-900/40 rounded-xl transition-colors"
-          title="Tools"
+          onClick={() => fileInputRef.current?.click()}
+          className="p-2 text-purple-300/70 hover:text-white hover:bg-purple-900/40 rounded-xl transition-colors cursor-pointer"
+          title="Upload image from computer"
         >
-          <ChevronRight className="w-4 h-4" />
+          <Upload className="w-4 h-4" />
         </button>
 
         <button
           type="button"
           onClick={() => setShowEmojiPicker((prev) => !prev)}
-          className={`p-2 rounded-xl transition-colors ${
+          className={`p-2 rounded-xl transition-colors cursor-pointer ${
             showEmojiPicker
               ? 'text-purple-300 bg-purple-900/50'
               : 'text-purple-300/70 hover:text-white hover:bg-purple-900/40'
@@ -215,7 +264,7 @@ const MessageInput = () => {
         <button
           type="button"
           onClick={() => setShowImageModal(true)}
-          className="p-2 text-purple-300/70 hover:text-white hover:bg-purple-900/40 rounded-xl transition-colors"
+          className="p-2 text-purple-300/70 hover:text-white hover:bg-purple-900/40 rounded-xl transition-colors cursor-pointer"
           title="Attach image"
         >
           <Image className="w-5 h-5" />

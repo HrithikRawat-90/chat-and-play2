@@ -7,7 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import connectDB from './config/db.js';
-import { seedInitialUsers } from './config/seed.js';
+import { removeDefaultUsers } from './config/cleanDefaultUsers.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
@@ -89,11 +89,11 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-// Connect to Database, seed demo users, and start server
+// Connect to Database, remove default sample users, and start server
 const startServer = async () => {
   try {
     await connectDB();
-    await seedInitialUsers();
+    await removeDefaultUsers();
     server.listen(PORT, () => {
       console.log(`[Server] Chat & Play backend listening on http://localhost:${PORT}`);
     });

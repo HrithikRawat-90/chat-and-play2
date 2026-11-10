@@ -27,3 +27,4 @@ Thumbs.db
 # In-memory MongoDB cache
 .cache/
 */.cache/
+

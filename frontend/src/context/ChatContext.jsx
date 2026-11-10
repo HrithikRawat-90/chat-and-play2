@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import api from '../services/api';
 import { useAuth } from './AuthContext';
 import { useSocket } from './SocketContext';
+import { sounds } from '../services/soundEffects';
 
 const ChatContext = createContext(null);
 
@@ -93,18 +94,20 @@ export const ChatProvider = ({ children }) => {
     if (!socket) return;
 
     const handleMessageReceive = (newMsg) => {
-      console.log('[Socket] Incoming real-time message:', newMsg);
+      // 1. Play incoming message chime if from opponent
+      if (newMsg.senderId?._id !== user?._id && newMsg.senderId !== user?._id) {
+        sounds.playMessageReceived();
+      }
 
-      // 1. If message belongs to active chat, add to feed
+      // 2. If message belongs to active chat, add to feed
       if (activeConversationRef.current && activeConversationRef.current._id === newMsg.conversationId) {
         setMessages((prev) => {
-          // Avoid duplicate if already received
           if (prev.some((m) => m._id === newMsg._id)) return prev;
           return [...prev, newMsg];
         });
       }
 
-      // 2. Update conversation list preview
+      // 3. Update conversation list preview
       setConversations((prev) => {
         const index = prev.findIndex((c) => c._id === newMsg.conversationId);
         if (index === -1) {
@@ -148,7 +151,7 @@ export const ChatProvider = ({ children }) => {
       socket.off('message:receive', handleMessageReceive);
       socket.off('conversation:updated', handleConversationUpdated);
     };
-  }, [socket, fetchConversations]);
+  }, [socket, fetchConversations, user?._id]);
 
   // Start or open conversation with another user
   const startConversationWithUser = async (recipientId) => {
