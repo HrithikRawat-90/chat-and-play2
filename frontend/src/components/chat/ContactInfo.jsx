@@ -82,12 +82,13 @@ const ContactInfo = () => {
   if (!isRightSidebarOpen || !contact) return null;
 
   const name = contact?.name || 'Contact Info';
+  const isBot = Boolean(contact?.isBot || name === 'Chatbot');
   const firstName = name.split(' ')[0];
   const avatar =
     contact?.profilePicture ||
     `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
   const bio = contact?.bio || 'Hey there! I am using Chat & Play.';
-  const isOnline = contactId ? isUserOnline(contactId) : (contact?.isOnline ?? false);
+  const isOnline = isBot ? true : (contactId ? isUserOnline(contactId) : Boolean(contact?.isOnline));
 
   // Extract real shared images from current conversation messages
   const sharedMedia = (messages || [])

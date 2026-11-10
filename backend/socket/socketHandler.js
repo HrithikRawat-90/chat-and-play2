@@ -88,8 +88,14 @@ export const initSocket = (server) => {
       isOnline: true,
     });
 
-    // Send currently online users list to newly connected socket
+    // Send currently online users list to newly connected socket (always include AI Chatbot)
     const activeUserIds = Array.from(onlineUsers.keys());
+    try {
+      const botDoc = await User.findOne({ $or: [{ isBot: true }, { name: 'Chatbot' }] }).select('_id');
+      if (botDoc && !activeUserIds.includes(botDoc._id.toString())) {
+        activeUserIds.push(botDoc._id.toString());
+      }
+    } catch (_) {}
     socket.emit('users:online:list', activeUserIds);
 
     // 2. Join private conversation room

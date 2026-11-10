@@ -4,7 +4,7 @@ import api from '../../services/api';
 import { Search, X, MessageSquare, User, Loader2, Sparkles } from 'lucide-react';
 
 const UserSearchModal = () => {
-  const { isSearchModalOpen, setIsSearchModalOpen, startConversationWithUser } = useChat();
+  const { isSearchModalOpen, setIsSearchModalOpen, startConversationWithUser, isUserOnline } = useChat();
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -99,7 +99,7 @@ const UserSearchModal = () => {
                       alt={u.name}
                       className="w-10 h-10 rounded-full object-cover bg-purple-950/60"
                     />
-                    {u.isOnline && (
+                    {Boolean(u.isBot || u.name === 'Chatbot' || (u._id && isUserOnline(u._id)) || u.isOnline) && (
                       <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-[#171131]" />
                     )}
                   </div>

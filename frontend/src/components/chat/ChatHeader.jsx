@@ -21,10 +21,11 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
 
   const contact = getOtherParticipant(activeConversation);
   const name = contact?.name || 'Conversation';
+  const isBot = Boolean(contact?.isBot || name === 'Chatbot');
   const avatar =
     contact?.profilePicture ||
     `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
-  const isOnline = contact?._id ? isUserOnline(contact._id) : (contact?.isOnline ?? false);
+  const isOnline = isBot ? true : (contact?._id ? isUserOnline(contact._id) : Boolean(contact?.isOnline));
 
   return (
     <div className="h-16 px-3 sm:px-6 flex items-center justify-between border-b border-purple-900/30 bg-[#130f24] select-none flex-shrink-0 sticky top-0 z-30 w-full shadow-md">
@@ -67,9 +68,8 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
             </div>
             <p className="text-[11px] sm:text-xs text-purple-300/60 leading-none mt-0.5 flex items-center gap-1.5 truncate">
               <span
-                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                  isOnline ? 'bg-emerald-400' : 'bg-gray-500'
-                }`}
+                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isOnline ? 'bg-emerald-400' : 'bg-gray-500'
+                  }`}
               />
               <span className="truncate">
                 {isOnline
@@ -118,11 +118,10 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
 
         <button
           onClick={toggleRightSidebar}
-          className={`p-2 rounded-xl transition-colors ${
-            isRightSidebarOpen
+          className={`p-2 rounded-xl transition-colors ${isRightSidebarOpen
               ? 'text-purple-300 bg-purple-900/50'
               : 'text-purple-300/70 hover:text-white hover:bg-purple-900/40'
-          }`}
+            }`}
           title="Contact information"
         >
           <Info className="w-4 h-4" />
