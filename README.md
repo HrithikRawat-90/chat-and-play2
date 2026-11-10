@@ -71,33 +71,33 @@ The application faithfully follows a dark-purple three-panel interface:
 ChattingApplication/
 ├── backend/
 │   ├── config/
-│   │   ├── db.js             # Mongoose connection with embedded fallback
-│   │   └── seed.js           # Demo user seeding matching screenshots
+│   │   ├── db.js                 # Mongoose connection with embedded fallback
+│   │   └── cleanDefaultUsers.js  # Cleans lingering mock accounts from DB
 │   ├── controllers/
-│   │   ├── authController.js # Register, login, getMe, logout
-│   │   ├── userController.js # User search & discovery
-│   │   └── chatController.js # Conversations & message persistence
+│   │   ├── authController.js     # Register, login, getMe, logout
+│   │   ├── userController.js     # User search, block/unblock, report
+│   │   └── chatController.js     # Conversations, messages & chat deletion
 │   ├── games/
-│   │   ├── ticTacToe.js      # Pure game engine & validation logic
-│   │   └── gameManager.js    # In-memory multiplayer match manager
+│   │   ├── ticTacToe.js          # Pure game engine & validation logic
+│   │   └── gameManager.js        # In-memory multiplayer match manager
 │   ├── middleware/
-│   │   └── auth.js           # JWT Bearer token verification
+│   │   └── auth.js               # JWT Bearer token verification
 │   ├── models/
-│   │   ├── User.js           # User schema with bcrypt password hashing
-│   │   ├── Conversation.js   # 1-on-1 chat room schema
-│   │   └── Message.js        # Persistent text & image messages
+│   │   ├── User.js               # User schema with bcrypt & blockedUsers
+│   │   ├── Conversation.js       # 1-on-1 chat room schema
+│   │   └── Message.js            # Persistent text & image messages
 │   ├── routes/
-│   │   ├── authRoutes.js     # /api/auth routes
-│   │   ├── userRoutes.js     # /api/users routes
-│   │   └── chatRoutes.js     # /api/conversations & /api/messages routes
+│   │   ├── authRoutes.js         # /api/auth routes
+│   │   ├── userRoutes.js         # /api/users routes (search, block, report)
+│   │   └── chatRoutes.js         # /api/conversations & /api/messages routes
 │   ├── socket/
-│   │   └── socketHandler.js  # Socket.IO auth, rooms, messaging & gameplay
-│   ├── server.js             # HTTP server & static frontend serving
-│   ├── test-auth.js          # Module 1 auth test suite (8 tests)
-│   ├── test-chat.js          # Module 2 chat & user test suite (9 tests)
-│   ├── test-socket.js        # Module 3 Socket.IO test suite (11 tests)
-│   ├── test-game.js          # Module 4 Tic-Tac-Toe test suite (8 tests)
-│   └── test-e2e.js           # Module 5 Complete E2E integration test
+│   │   └── socketHandler.js      # Socket.IO auth, rooms, messaging & gameplay
+│   ├── server.js                 # HTTP server & static frontend serving
+│   ├── test-auth.js              # Module 1 auth test suite (8 tests)
+│   ├── test-chat.js              # Module 2 chat & actions test suite (12 tests)
+│   ├── test-socket.js            # Module 3 Socket.IO test suite (11 tests)
+│   ├── test-game.js              # Module 4 Tic-Tac-Toe test suite (8 tests)
+│   └── test-e2e.js               # Module 5 Complete E2E integration test
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
