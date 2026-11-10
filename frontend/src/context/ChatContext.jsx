@@ -228,14 +228,14 @@ export const ChatProvider = ({ children }) => {
   };
 
   // Send a message (Socket.IO with REST API fallback)
-  const sendMessage = async (text, imageUrl = '', replyTo = null) => {
+  const sendMessage = async (text, imageUrl = '', replyTo = null, audioUrl = '') => {
     if (!activeConversation) return;
     const conversationId = activeConversation._id;
 
     if (isConnected) {
       return new Promise((resolve, reject) => {
         sendRealtimeMessage(
-          { conversationId, text, imageUrl, replyTo },
+          { conversationId, text, imageUrl, audioUrl, replyTo },
           (response) => {
             if (response && response.success) {
               setMessages((prev) => {
@@ -256,6 +256,7 @@ export const ChatProvider = ({ children }) => {
         conversationId,
         text,
         imageUrl,
+        audioUrl,
         replyTo,
       });
       if (res.data.success) {

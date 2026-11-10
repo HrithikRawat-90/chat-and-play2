@@ -278,7 +278,7 @@ export const getMessages = async (req, res) => {
 export const sendMessage = async (req, res) => {
   try {
     const currentUserId = req.user._id;
-    const { conversationId, text, imageUrl, replyTo } = req.body;
+    const { conversationId, text, imageUrl, audioUrl, replyTo } = req.body;
 
     if (!conversationId) {
       return res.status(400).json({
@@ -287,7 +287,7 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    if ((!text || text.trim() === '') && !imageUrl) {
+    if ((!text || text.trim() === '') && !imageUrl && !audioUrl) {
       return res.status(400).json({
         success: false,
         message: 'Message cannot be empty.',
@@ -318,12 +318,13 @@ export const sendMessage = async (req, res) => {
       senderId: currentUserId,
       text: text ? text.trim() : '',
       imageUrl: imageUrl || '',
+      audioUrl: audioUrl || '',
       replyTo: replyTo || { text: '', senderName: '' },
     });
 
     // Update conversation lastMessage & timestamp
     conversation.lastMessage = {
-      text: text ? text.trim() : (imageUrl ? '📷 Shared an image' : ''),
+      text: text ? text.trim() : (audioUrl ? '🎤 Voice message' : (imageUrl ? '📷 Shared an image' : '')),
       sender: currentUserId,
       createdAt: new Date(),
     };

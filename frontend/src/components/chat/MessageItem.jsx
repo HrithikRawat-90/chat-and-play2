@@ -1,10 +1,118 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { Play, Pause } from 'lucide-react';
 
 const formatMessageTime = (dateInput) => {
   if (!dateInput) return '';
   const date = new Date(dateInput);
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+// Apple-style Voice Memo Player
+const VoiceMessagePlayer = ({ audioUrl, isSender }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const audioRef = useRef(null);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current && audioRef.current.duration && !isNaN(audioRef.current.duration)) {
+      setDuration(audioRef.current.duration);
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
+
+  const formatSec = (sec) => {
+    if (!sec || isNaN(sec)) return '0:00';
+    const mins = Math.floor(sec / 60);
+    const secs = Math.floor(sec % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const waveformHeights = [30, 55, 85, 40, 70, 95, 50, 75, 35, 65, 90, 55, 35, 80, 45, 65];
+
+  return (
+    <div
+      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[20px] min-w-[210px] sm:min-w-[250px] shadow-sm select-none ${
+        isSender
+          ? 'bg-[#007aff] text-white rounded-br-[4px]'
+          : 'bg-[#26262a] text-[#f2f2f7] rounded-tl-[4px] border border-white/5'
+      }`}
+    >
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        preload="metadata"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={handleEnded}
+      />
+
+      <button
+        type="button"
+        onClick={togglePlay}
+        className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-transform active:scale-90 ${
+          isSender
+            ? 'bg-white text-[#007aff] hover:bg-white/90'
+            : 'bg-[#007aff] text-white hover:bg-[#0a84ff]'
+        }`}
+        title={isPlaying ? 'Pause' : 'Play voice message'}
+      >
+        {isPlaying ? (
+          <Pause className="w-4 h-4 fill-current" />
+        ) : (
+          <Play className="w-4 h-4 fill-current ml-0.5" />
+        )}
+      </button>
+
+      <div className="flex-1 flex flex-col justify-center gap-1.5 min-w-0">
+        {/* Apple style waveform visualization */}
+        <div className="flex items-center gap-[3px] h-4">
+          {waveformHeights.map((h, i) => {
+            const barProgress = (i / waveformHeights.length) * 100;
+            const isFilled = progress >= barProgress;
+            return (
+              <span
+                key={i}
+                className={`w-[3px] rounded-full transition-all duration-150 ${
+                  isFilled
+                    ? isSender ? 'bg-white' : 'bg-[#007aff]'
+                    : isSender ? 'bg-white/40' : 'bg-zinc-600'
+                }`}
+                style={{ height: `${h}%` }}
+              />
+            );
+          })}
+        </div>
+        <div className="flex justify-between items-center text-[10.5px] font-medium opacity-80">
+          <span>{formatSec(currentTime)}</span>
+          <span>{formatSec(duration || 0)}</span>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
@@ -25,7 +133,7 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
             <img
               src={senderAvatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(senderName || 'user')}`}
               alt={senderName}
-              className="w-8 h-8 rounded-full object-cover bg-purple-950/80 border border-purple-800/40"
+              className="w-8 h-8 rounded-full object-cover bg-zinc-800 border border-white/10"
             />
           ) : (
             <div className="w-8" />
@@ -37,7 +145,7 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
       <div className={`max-w-[85%] sm:max-w-[70%] flex flex-col ${isSender ? 'items-end' : 'items-start'}`}>
         {/* Optional Image Attachment */}
         {message.imageUrl && (
-          <div className="mb-1.5 overflow-hidden rounded-2xl border-2 border-purple-500/40 shadow-lg shadow-purple-950/50 max-w-sm sm:max-w-md">
+          <div className="mb-1.5 overflow-hidden rounded-[18px] border border-white/10 shadow-lg max-w-sm sm:max-w-md">
             <img
               src={message.imageUrl}
               alt="Shared attachment"
@@ -47,23 +155,30 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
           </div>
         )}
 
+        {/* Optional Voice Message Player */}
+        {message.audioUrl && (
+          <div className="mb-1">
+            <VoiceMessagePlayer audioUrl={message.audioUrl} isSender={isSender} />
+          </div>
+        )}
+
         {/* Optional Reply Quote */}
         {message.replyTo && message.replyTo.text && (
-          <div className="mb-1 p-2.5 rounded-xl bg-purple-950/60 border-l-4 border-purple-500 text-xs text-purple-200/90 max-w-full">
-            <span className="font-semibold text-purple-300 block mb-0.5">
+          <div className="mb-1 p-2.5 rounded-xl bg-zinc-800/80 border-l-4 border-[#007aff] text-xs text-zinc-300 max-w-full">
+            <span className="font-semibold text-white block mb-0.5">
               {message.replyTo.senderName || 'Replied'}
             </span>
-            <p className="line-clamp-2 text-purple-200/70">{message.replyTo.text}</p>
+            <p className="line-clamp-2 text-zinc-400">{message.replyTo.text}</p>
           </div>
         )}
 
         {/* Message Text Bubble */}
         {message.text && (
           <div
-            className={`px-4 py-2.5 text-sm sm:text-[14.5px] leading-relaxed break-words shadow-md select-text ${
+            className={`px-4 py-2 text-sm sm:text-[14.5px] leading-relaxed break-words shadow-sm select-text ${
               isSender
-                ? 'bg-purple-700 hover:bg-purple-600/90 text-white rounded-2xl rounded-br-sm shadow-purple-950/40 transition-colors'
-                : 'bg-[#221c3b] hover:bg-[#282145] text-purple-100 rounded-2xl rounded-tl-sm border border-purple-900/30 transition-colors'
+                ? 'bg-[#007aff] text-white rounded-[18px] rounded-br-[4px]'
+                : 'bg-[#26262a] text-[#f2f2f7] rounded-[18px] rounded-tl-[4px] border border-white/5'
             }`}
           >
             {message.text}
@@ -71,7 +186,7 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
         )}
 
         {/* Timestamp */}
-        <span className="text-[10.5px] text-purple-300/45 mt-1 px-1 select-none">
+        <span className="text-[10px] text-zinc-500 mt-1 px-1 select-none font-medium">
           {time}
         </span>
       </div>
@@ -80,4 +195,3 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
 };
 
 export default MessageItem;
-

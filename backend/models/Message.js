@@ -22,6 +22,10 @@ const messageSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    audioUrl: {
+      type: String,
+      default: '',
+    },
     replyTo: {
       text: { type: String, default: '' },
       senderName: { type: String, default: '' },

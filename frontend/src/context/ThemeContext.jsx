@@ -4,6 +4,13 @@ const ThemeContext = createContext(null);
 
 export const THEMES = [
   {
+    id: 'apple-dark',
+    name: 'Dark Theme',
+    previewColor: '#007aff',
+    accent: 'blue',
+    description: 'Clean dark mode with OLED black and blue accents',
+  },
+  {
     id: 'purple',
     name: 'Cyberpunk Violet',
     previewColor: '#7c3aed',
@@ -43,9 +50,15 @@ export const THEMES = [
 export const ThemeProvider = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('chatplay_theme') || 'purple';
+      const saved = localStorage.getItem('chatplay_theme');
+      // If user had the old default 'purple' or nothing, switch to 'apple-dark'
+      if (!saved || saved === 'purple') {
+        localStorage.setItem('chatplay_theme', 'apple-dark');
+        return 'apple-dark';
+      }
+      return saved;
     }
-    return 'purple';
+    return 'apple-dark';
   });
 
   useEffect(() => {
@@ -75,4 +88,3 @@ export const useTheme = () => {
   }
   return context;
 };
-

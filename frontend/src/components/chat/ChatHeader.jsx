@@ -3,8 +3,6 @@ import { useChat } from '../../context/ChatContext';
 import {
   ArrowLeft,
   Search,
-  Video,
-  Phone,
   Info,
   Gamepad2,
   Copy,
@@ -126,7 +124,7 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
         {/* Play Together Standout Button */}
         <button
           onClick={onPlayTogetherClick}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-xs shadow-md shadow-purple-600/30 active:scale-95 transition-all cursor-pointer mr-1"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#007aff] hover:bg-[#006ee6] text-white font-medium text-xs shadow-sm active:scale-95 transition-all cursor-pointer mr-1"
           title="Play Tic-Tac-Toe together!"
         >
           <Gamepad2 className="w-4 h-4" />
@@ -134,31 +132,17 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
         </button>
 
         <button
-          className="p-2 rounded-xl text-purple-300/70 hover:text-white hover:bg-purple-900/40 transition-colors"
+          className="p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
           title="Search in chat"
         >
           <Search className="w-4 h-4" />
         </button>
 
         <button
-          className="hidden sm:inline-flex p-2 rounded-xl text-purple-300/70 hover:text-white hover:bg-purple-900/40 transition-colors"
-          title="Video call"
-        >
-          <Video className="w-4 h-4" />
-        </button>
-
-        <button
-          className="hidden sm:inline-flex p-2 rounded-xl text-purple-300/70 hover:text-white hover:bg-purple-900/40 transition-colors"
-          title="Voice call"
-        >
-          <Phone className="w-4 h-4" />
-        </button>
-
-        <button
           onClick={toggleRightSidebar}
-          className={`p-2 rounded-xl transition-colors ${isRightSidebarOpen
-            ? 'text-purple-300 bg-purple-900/50'
-            : 'text-purple-300/70 hover:text-white hover:bg-purple-900/40'
+          className={`p-2 rounded-full transition-colors ${isRightSidebarOpen
+            ? 'text-[#0a84ff] bg-[#007aff]/20'
+            : 'text-zinc-400 hover:text-white hover:bg-white/10'
             }`}
           title="Contact information"
         >

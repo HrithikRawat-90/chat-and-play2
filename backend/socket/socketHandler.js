@@ -139,14 +139,14 @@ export const initSocket = (server) => {
     });
 
     // 4. Real-time message sending
-    socket.on('message:send', async ({ conversationId, text, imageUrl, replyTo }, callback) => {
+    socket.on('message:send', async ({ conversationId, text, imageUrl, audioUrl, replyTo }, callback) => {
       try {
         if (!conversationId) {
           if (callback) callback({ success: false, message: 'Conversation ID required' });
           return;
         }
 
-        if ((!text || text.trim() === '') && !imageUrl) {
+        if ((!text || text.trim() === '') && !imageUrl && !audioUrl) {
           if (callback) callback({ success: false, message: 'Message content required' });
           return;
         }
@@ -171,13 +171,14 @@ export const initSocket = (server) => {
           senderId: socket.user._id,
           text: text ? text.trim() : '',
           imageUrl: imageUrl || '',
+          audioUrl: audioUrl || '',
           replyTo: replyTo || { text: '', senderName: '' },
           isRead: false,
         });
 
         // Update conversation summary
         conversation.lastMessage = {
-          text: text ? text.trim() : (imageUrl ? '📷 Shared an image' : ''),
+          text: text ? text.trim() : (audioUrl ? '🎤 Voice message' : (imageUrl ? '📷 Shared an image' : '')),
           sender: socket.user._id,
           createdAt: new Date(),
         };
@@ -214,7 +215,7 @@ export const initSocket = (server) => {
             io.to(conversationId).emit('typing:start', {
               conversationId,
               userId: botUser._id.toString(),
-              userName: 'Chatbot (Gemini AI)',
+              userName: 'Chatbot',
             });
 
             // 2. Fetch recent conversation context

@@ -15,8 +15,8 @@
     overflow: hidden;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
-    @apply bg-[#0b0816] text-[#e2e8f0] antialiased selection:bg-purple-600 selection:text-white;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    @apply bg-black text-[#f2f2f7] antialiased selection:bg-[#007aff] selection:text-white;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", -apple-system-subheadline, "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
 
   #root {
@@ -29,10 +29,10 @@
   }
 }
 
-/* Custom scrollbars matching theme UI */
+/* Custom Apple sleek scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -40,39 +40,182 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.25);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.5);
+  background: rgba(255, 255, 255, 0.35);
 }
 
-/* Dynamic Themes */
+/* ========================================================
+   APPLE DARK THEME (Default / iOS Mode)
+   ======================================================== */
+html[data-theme="apple-dark"],
+html:not([data-theme]),
+html[data-theme=""] {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", sans-serif !important;
+}
+
+html[data-theme="apple-dark"] body,
+html:not([data-theme]) body,
+html[data-theme=""] body {
+  background-color: #000000 !important;
+  color: #f2f2f7 !important;
+}
+
+/* OLED Pure Black Backgrounds */
+html[data-theme="apple-dark"] .bg-\[\#090614\],
+html[data-theme="apple-dark"] .bg-\[\#0b0816\],
+html[data-theme="apple-dark"] .bg-\[\#0d091d\],
+html:not([data-theme]) .bg-\[\#090614\],
+html:not([data-theme]) .bg-\[\#0b0816\],
+html:not([data-theme]) .bg-\[\#0d091d\] {
+  background-color: #000000 !important;
+}
+
+/* Elevated Apple Dark Surfaces (Cards & Sidebars) */
+html[data-theme="apple-dark"] .bg-\[\#130f24\],
+html[data-theme="apple-dark"] .bg-\[\#140e2b\],
+html[data-theme="apple-dark"] .bg-\[\#100b21\],
+html:not([data-theme]) .bg-\[\#130f24\],
+html:not([data-theme]) .bg-\[\#140e2b\],
+html:not([data-theme]) .bg-\[\#100b21\] {
+  background-color: #121214 !important;
+}
+
+html[data-theme="apple-dark"] .bg-\[\#1b1538\],
+html[data-theme="apple-dark"] .bg-\[\#1e163b\],
+html[data-theme="apple-dark"] .bg-\[\#16102f\],
+html[data-theme="apple-dark"] .bg-\[\#160f2d\],
+html[data-theme="apple-dark"] .bg-\[\#1e173e\],
+html:not([data-theme]) .bg-\[\#1b1538\],
+html:not([data-theme]) .bg-\[\#1e163b\],
+html:not([data-theme]) .bg-\[\#16102f\],
+html:not([data-theme]) .bg-\[\#160f2d\],
+html:not([data-theme]) .bg-\[\#1e173e\] {
+  background-color: #1c1c1e !important;
+}
+
+html[data-theme="apple-dark"] .bg-\[\#231b45\],
+html:not([data-theme]) .bg-\[\#231b45\] {
+  background-color: #2c2c2e !important;
+}
+
+html[data-theme="apple-dark"] .hover\:bg-\[\#181233\]\/70:hover,
+html:not([data-theme]) .hover\:bg-\[\#181233\]\/70:hover {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html[data-theme="apple-dark"] .bg-\[\#0c0919\],
+html[data-theme="apple-dark"] .bg-\[\#0b0818\],
+html:not([data-theme]) .bg-\[\#0c0919\],
+html:not([data-theme]) .bg-\[\#0b0818\] {
+  background-color: #1c1c1e !important;
+}
+
+/* Received Message Bubble Dark Gray */
+html[data-theme="apple-dark"] .bg-\[\#221c3b\],
+html:not([data-theme]) .bg-\[\#221c3b\] {
+  background-color: #26262a !important;
+}
+
+/* Hairline Apple Borders */
+html[data-theme="apple-dark"] .border-purple-900\/30,
+html[data-theme="apple-dark"] .border-purple-900\/40,
+html[data-theme="apple-dark"] .border-purple-900\/50,
+html[data-theme="apple-dark"] .border-purple-800\/30,
+html[data-theme="apple-dark"] .border-purple-800\/40,
+html:not([data-theme]) .border-purple-900\/30,
+html:not([data-theme]) .border-purple-900\/40,
+html:not([data-theme]) .border-purple-900\/50,
+html:not([data-theme]) .border-purple-800\/30,
+html:not([data-theme]) .border-purple-800\/40 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Apple System Blue Accents & Buttons */
+html[data-theme="apple-dark"] .bg-purple-600,
+html[data-theme="apple-dark"] .bg-purple-700,
+html:not([data-theme]) .bg-purple-600,
+html:not([data-theme]) .bg-purple-700 {
+  background-color: #007aff !important;
+}
+
+html[data-theme="apple-dark"] .hover\:bg-purple-500:hover,
+html[data-theme="apple-dark"] .hover\:bg-purple-600:hover,
+html:not([data-theme]) .hover\:bg-purple-500:hover,
+html:not([data-theme]) .hover\:bg-purple-600:hover {
+  background-color: #006ee6 !important;
+}
+
+html[data-theme="apple-dark"] .text-purple-400,
+html[data-theme="apple-dark"] .text-purple-300,
+html:not([data-theme]) .text-purple-400,
+html:not([data-theme]) .text-purple-300 {
+  color: #0a84ff !important;
+}
+
+html[data-theme="apple-dark"] .text-purple-300\/70,
+html[data-theme="apple-dark"] .text-purple-300\/60,
+html[data-theme="apple-dark"] .text-purple-300\/50,
+html[data-theme="apple-dark"] .text-purple-300\/45,
+html[data-theme="apple-dark"] .text-purple-300\/35,
+html[data-theme="apple-dark"] .text-purple-200\/70,
+html:not([data-theme]) .text-purple-300\/70,
+html:not([data-theme]) .text-purple-300\/60,
+html:not([data-theme]) .text-purple-300\/50,
+html:not([data-theme]) .text-purple-300\/45,
+html:not([data-theme]) .text-purple-300\/35,
+html:not([data-theme]) .text-purple-200\/70 {
+  color: #8e8e93 !important;
+}
+
+html[data-theme="apple-dark"] .from-purple-600.to-indigo-600,
+html:not([data-theme]) .from-purple-600.to-indigo-600 {
+  background-image: linear-gradient(135deg, #007aff 0%, #0051a8 100%) !important;
+}
+
+html[data-theme="apple-dark"] .shadow-purple-600\/30,
+html[data-theme="apple-dark"] .shadow-purple-950\/50,
+html[data-theme="apple-dark"] .shadow-purple-950\/80,
+html:not([data-theme]) .shadow-purple-600\/30,
+html:not([data-theme]) .shadow-purple-950\/50,
+html:not([data-theme]) .shadow-purple-950\/80 {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ========================================================
+   OTHER THEMES (Cyberpunk Violet, Emerald, Midnight, etc.)
+   ======================================================== */
+html[data-theme="purple"] {
+  font-family: system-ui, -apple-system, sans-serif !important;
+}
+
 html[data-theme="midnight"] #root {
   filter: hue-rotate(35deg) brightness(0.95);
 }
-html[data-theme="midnight"] img {
+html[data-theme="midnight"] img, html[data-theme="midnight"] audio {
   filter: hue-rotate(-35deg) brightness(1.05);
 }
 
 html[data-theme="emerald"] #root {
   filter: hue-rotate(180deg) saturate(1.15);
 }
-html[data-theme="emerald"] img {
+html[data-theme="emerald"] img, html[data-theme="emerald"] audio {
   filter: hue-rotate(-180deg) saturate(0.87);
 }
 
 html[data-theme="sunset"] #root {
   filter: hue-rotate(315deg) saturate(1.2);
 }
-html[data-theme="sunset"] img {
+html[data-theme="sunset"] img, html[data-theme="sunset"] audio {
   filter: hue-rotate(-315deg) saturate(0.83);
 }
 
 html[data-theme="ocean"] #root {
   filter: hue-rotate(65deg) saturate(1.1);
 }
-html[data-theme="ocean"] img {
+html[data-theme="ocean"] img, html[data-theme="ocean"] audio {
   filter: hue-rotate(-65deg) saturate(0.91);
 }
