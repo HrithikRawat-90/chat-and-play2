@@ -6,13 +6,6 @@ import { sounds } from '../services/soundEffects';
 
 const ChatContext = createContext(null);
 
-const SAMPLE_MEDIA = [
-  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80',
-  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80',
-  'https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?w=400&q=80',
-  'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=80',
-];
-
 export const ChatProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
   const {
@@ -235,7 +228,6 @@ export const ChatProvider = ({ children }) => {
         mobileView,
         activeTab,
         isSearchModalOpen,
-        sampleMedia: SAMPLE_MEDIA,
         currentTypingUsers,
         isSocketConnected: isConnected,
         setMobileView,

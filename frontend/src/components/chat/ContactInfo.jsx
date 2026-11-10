@@ -7,6 +7,7 @@ import {
   Ban,
   Flag,
   Trash2,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 const ContactInfo = () => {
@@ -15,7 +16,7 @@ const ContactInfo = () => {
     getOtherParticipant,
     isRightSidebarOpen,
     toggleRightSidebar,
-    sampleMedia,
+    messages,
     isUserOnline,
   } = useChat();
 
@@ -30,6 +31,11 @@ const ContactInfo = () => {
     `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
   const bio = contact?.bio || 'Hey there! I am using Chat & Play.';
   const isOnline = contact?._id ? isUserOnline(contact._id) : (contact?.isOnline ?? false);
+
+  // Extract real shared images from current conversation messages
+  const sharedMedia = (messages || [])
+    .filter((m) => m.imageUrl && m.imageUrl.trim() !== '')
+    .map((m) => m.imageUrl);
 
   return (
     <aside className="h-full w-full sm:w-80 lg:w-[320px] bg-[#130f24] border-l border-purple-900/30 flex flex-col flex-shrink-0 animate-fadeIn select-none overflow-y-auto">
@@ -77,47 +83,37 @@ const ContactInfo = () => {
         </span>
       </div>
 
-      {/* Media, Links and Files */}
-      <div className="p-4 border-b border-purple-900/30">
-        <div className="flex items-center justify-between mb-3 text-xs font-semibold text-purple-200/80 cursor-pointer group">
-          <span>Media, Links and Files</span>
-          <ChevronRight className="w-4 h-4 text-purple-400 group-hover:translate-x-0.5 transition-transform" />
-        </div>
-
-        <div className="grid grid-cols-4 gap-2">
-          {sampleMedia.map((img, i) => (
-            <div
-              key={i}
-              className="aspect-square rounded-xl overflow-hidden border border-purple-900/40 hover:border-purple-500/60 transition-all cursor-pointer"
-            >
-              <img
-                src={img}
-                alt="Shared thumbnail"
-                className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-              />
+      {/* Media, Links and Files: ONLY rendered if actual media has been shared in this chat */}
+      {sharedMedia.length > 0 && (
+        <div className="p-4 border-b border-purple-900/30">
+          <div className="flex items-center justify-between mb-3 text-xs font-semibold text-purple-200/80">
+            <div className="flex items-center gap-1.5">
+              <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
+              <span>Shared Media ({sharedMedia.length})</span>
             </div>
-          ))}
-        </div>
-      </div>
+            <ChevronRight className="w-4 h-4 text-purple-400" />
+          </div>
 
-      {/* Groups in Common */}
-      <div className="p-4 border-b border-purple-900/30">
-        <div className="flex items-center justify-between mb-3 text-xs font-semibold text-purple-200/80 cursor-pointer group">
-          <span>Groups in common</span>
-          <span className="text-[11px] text-purple-400 font-normal">5 &gt;</span>
+          <div className="grid grid-cols-4 gap-2">
+            {sharedMedia.slice(0, 8).map((img, i) => (
+              <a
+                key={i}
+                href={img}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="aspect-square rounded-xl overflow-hidden border border-purple-900/40 hover:border-purple-500/60 transition-all cursor-pointer block"
+                title="View full image"
+              >
+                <img
+                  src={img}
+                  alt="Shared media"
+                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                />
+              </a>
+            ))}
+          </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          {sampleMedia.map((img, i) => (
-            <img
-              key={i}
-              src={img}
-              alt="Group thumb"
-              className="w-9 h-9 rounded-lg object-cover border border-purple-900/50"
-            />
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Notifications */}
       <div className="p-4 border-b border-purple-900/30">
