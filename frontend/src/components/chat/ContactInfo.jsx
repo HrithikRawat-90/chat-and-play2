@@ -13,6 +13,9 @@ import {
   AlertTriangle,
   ShieldAlert,
   Loader2,
+  Copy,
+  Users,
+  KeyRound,
 } from 'lucide-react';
 
 const REPORT_REASONS = [
@@ -81,14 +84,18 @@ const ContactInfo = () => {
 
   if (!isRightSidebarOpen || !contact) return null;
 
-  const name = contact?.name || 'Contact Info';
+  const isGroup = Boolean(activeConversation?.isGroup);
+  const name = isGroup ? activeConversation?.groupName : (contact?.name || 'Contact Info');
   const isBot = Boolean(contact?.isBot || name === 'Chatbot');
   const firstName = name.split(' ')[0];
   const avatar =
-    contact?.profilePicture ||
+    (isGroup ? activeConversation?.groupAvatar : contact?.profilePicture) ||
     `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
-  const bio = contact?.bio || 'Hey there! I am using Chat & Play.';
+  const bio = isGroup
+    ? activeConversation?.groupDescription || `Group join code: ${activeConversation?.groupCode}`
+    : contact?.bio || 'Hey there! I am using Chat & Play.';
   const isOnline = isBot ? true : (contactId ? isUserOnline(contactId) : Boolean(contact?.isOnline));
+  const groupCode = activeConversation?.groupCode;
 
   // Extract real shared images from current conversation messages
   const sharedMedia = (messages || [])
@@ -177,7 +184,9 @@ const ContactInfo = () => {
 
       {/* Header */}
       <div className="h-16 px-5 flex items-center justify-between border-b border-purple-900/30">
-        <h3 className="font-semibold text-white text-base">Contact Info</h3>
+        <h3 className="font-semibold text-white text-base">
+          {isGroup ? 'Group Details' : 'Contact Info'}
+        </h3>
         <button
           onClick={toggleRightSidebar}
           className="p-1.5 rounded-lg text-purple-300/70 hover:text-white hover:bg-purple-900/40 transition-colors cursor-pointer"
@@ -195,7 +204,7 @@ const ContactInfo = () => {
             alt={name}
             className="w-24 h-24 rounded-full object-cover bg-purple-950/80 ring-4 ring-purple-600/30 shadow-xl"
           />
-          {isOnline && (
+          {isOnline && !isGroup && (
             <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 rounded-full ring-4 ring-[#130f24]" />
           )}
         </div>
@@ -206,15 +215,84 @@ const ContactInfo = () => {
         </p>
         <span
           className={`mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium ${
-            isOnline
+            isGroup || isOnline
               ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/30'
               : 'bg-gray-900/40 text-gray-400 border border-gray-700/30'
           }`}
         >
-          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-gray-500'}`} />
-          {isOnline ? 'Online now' : 'Offline'}
+          <span className={`w-1.5 h-1.5 rounded-full ${isGroup || isOnline ? 'bg-emerald-400' : 'bg-gray-500'}`} />
+          {isGroup ? `${activeConversation.participants?.length || 1} Members Active` : isOnline ? 'Online now' : 'Offline'}
         </span>
       </div>
+
+      {/* If group, show Group Join Code box */}
+      {isGroup && groupCode && (
+        <div className="p-4 border-b border-purple-900/30 bg-[#0e0a1f]">
+          <div className="p-3 rounded-xl bg-purple-950/40 border border-purple-800/40 flex items-center justify-between gap-2">
+            <div>
+              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">
+                Group Join Code
+              </span>
+              <span className="font-mono text-base font-extrabold text-white tracking-widest">
+                {groupCode}
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(groupCode);
+                showToast('Group Code copied to clipboard!');
+              }}
+              className="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1 shadow cursor-pointer"
+            >
+              <Copy className="w-3 h-3" />
+              <span>Copy</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Group Members Section */}
+      {isGroup && (
+        <div className="p-4 border-b border-purple-900/30">
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="text-xs font-semibold text-purple-200 flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-purple-400" />
+              <span>Group Members ({activeConversation.participants?.length || 0})</span>
+            </span>
+          </div>
+          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+            {(activeConversation.participants || []).map((p) => {
+              const pId = (p._id || p.id || p)?.toString();
+              const pName = p.name || 'Member';
+              const pAvatar =
+                p.profilePicture ||
+                `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(pName)}`;
+              const isAdmin =
+                activeConversation.groupAdmin &&
+                (activeConversation.groupAdmin._id || activeConversation.groupAdmin)?.toString() ===
+                  pId;
+
+              return (
+                <div key={pId} className="flex items-center justify-between py-1 px-1 rounded-lg">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <img
+                      src={pAvatar}
+                      alt={pName}
+                      className="w-7 h-7 rounded-full object-cover bg-purple-950 border border-purple-800/40"
+                    />
+                    <span className="text-xs text-white font-medium truncate">{pName}</span>
+                  </div>
+                  {isAdmin && (
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-600/30 text-purple-300 border border-purple-500/40">
+                      Admin
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Media, Links and Files: ONLY rendered if actual media has been shared in this chat */}
       {sharedMedia.length > 0 && (

@@ -29,6 +29,19 @@ export const ChatProvider = ({ children }) => {
   const [mobileView, setMobileView] = useState('list'); // 'list' | 'chat'
   const [activeTab, setActiveTab] = useState('chat');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [isJoinGroupOpen, setIsJoinGroupOpen] = useState(false);
+
+  // Total unread messages across all conversations
+  const totalUnreadCount = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.title =
+        totalUnreadCount > 0 ? `(${totalUnreadCount}) New Message • Chat & Play` : 'Chat & Play';
+    }
+  }, [totalUnreadCount]);
 
   const activeConversationRef = useRef(activeConversation);
   useEffect(() => {
@@ -103,6 +116,12 @@ export const ChatProvider = ({ children }) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsRightSidebarOpen(false);
     }
+    // Mark this conversation unreadCount as cleared
+    setConversations((prev) =>
+      prev.map((c) =>
+        (c._id || c.id)?.toString() === newConvId ? { ...c, unreadCount: 0 } : c
+      )
+    );
     joinConversation(newConvId);
     fetchMessages(newConvId);
   };
@@ -117,7 +136,7 @@ export const ChatProvider = ({ children }) => {
       const msgConvId = (newMsg.conversationId?._id || newMsg.conversationId)?.toString();
       const activeConvId = (activeConversationRef.current?._id || activeConversationRef.current?.id)?.toString();
 
-      // 1. Play incoming message chime if from partner
+      // 1. Play Apple-like incoming message chime if from another user / bot
       if (msgSenderId && msgSenderId !== currentUserId) {
         sounds.playMessageReceived();
       }
@@ -131,7 +150,7 @@ export const ChatProvider = ({ children }) => {
         });
       }
 
-      // 3. Update conversation list preview
+      // 3. Update conversation list preview & increment unread badge if not active
       setConversations((prev) => {
         const index = prev.findIndex((c) => (c._id || c.id)?.toString() === msgConvId);
         if (index === -1) {
@@ -139,6 +158,9 @@ export const ChatProvider = ({ children }) => {
           fetchConversations();
           return prev;
         }
+
+        const isCurrentlyActive = activeConvId === msgConvId;
+        const currentUnread = prev[index].unreadCount || 0;
 
         const updatedConv = {
           ...prev[index],
@@ -148,6 +170,7 @@ export const ChatProvider = ({ children }) => {
             createdAt: newMsg.createdAt,
           },
           updatedAt: newMsg.createdAt,
+          unreadCount: isCurrentlyActive ? 0 : currentUnread + 1,
         };
 
         const remaining = prev.filter((c) => (c._id || c.id)?.toString() !== msgConvId);
@@ -189,10 +212,11 @@ export const ChatProvider = ({ children }) => {
       if (res.data.success) {
         const conv = res.data.conversation;
         setConversations((prev) => {
-          const exists = prev.find((c) => c._id === conv._id);
+          const exists = prev.find((c) => (c._id || c.id) === (conv._id || conv.id));
           if (exists) return prev;
           return [conv, ...prev];
         });
+        setActiveTab('chat');
         selectConversation(conv);
         setIsSearchModalOpen(false);
         return conv;
@@ -267,9 +291,77 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // Helper to extract the contact (the other participant in a 1-on-1 conversation)
+  // Create a new group conversation
+  const createGroupConversation = async ({ groupName, groupDescription, groupAvatar }) => {
+    try {
+      const res = await api.post('/conversations/group', {
+        groupName,
+        groupDescription,
+        groupAvatar,
+      });
+      if (res.data.success && res.data.conversation) {
+        setConversations((prev) => [res.data.conversation, ...prev]);
+        selectConversation(res.data.conversation);
+        return { success: true, conversation: res.data.conversation };
+      }
+      return { success: false, message: res.data.message };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || 'Failed to create group',
+      };
+    }
+  };
+
+  // Join group using Group Join Code
+  const joinGroupWithCode = async (code) => {
+    try {
+      const res = await api.post('/conversations/join-group', { code });
+      if (res.data.success && res.data.conversation) {
+        setConversations((prev) => {
+          const exists = prev.some(
+            (c) => (c._id || c.id) === (res.data.conversation._id || res.data.conversation.id)
+          );
+          if (exists) return prev;
+          return [res.data.conversation, ...prev];
+        });
+        selectConversation(res.data.conversation);
+        return {
+          success: true,
+          alreadyMember: res.data.alreadyMember,
+          message: res.data.message,
+          conversation: res.data.conversation,
+        };
+      }
+      return { success: false, message: res.data.message };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || 'Invalid group join code',
+      };
+    }
+  };
+
+  // Helper to extract contact or group details
   const getOtherParticipant = (conv) => {
-    if (!conv || !conv.participants) return null;
+    if (!conv) return null;
+    if (conv.isGroup) {
+      return {
+        _id: conv._id,
+        name: conv.groupName || 'Group Chat',
+        profilePicture:
+          conv.groupAvatar ||
+          `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(
+            conv.groupName || 'Group'
+          )}`,
+        bio: conv.groupDescription || `Group join code: ${conv.groupCode}`,
+        isGroup: true,
+        groupCode: conv.groupCode,
+        groupAdmin: conv.groupAdmin,
+        participants: conv.participants || [],
+      };
+    }
+    if (!conv.participants) return null;
     const currentUserId = (user?._id || user?.id)?.toString();
     return (
       conv.participants.find(
@@ -299,14 +391,23 @@ export const ChatProvider = ({ children }) => {
         mobileView,
         activeTab,
         isSearchModalOpen,
+        isSettingsOpen,
+        isCreateGroupOpen,
+        isJoinGroupOpen,
+        totalUnreadCount,
         currentTypingUsers,
         isSocketConnected: isConnected,
         setMobileView,
         setActiveTab,
         setIsSearchModalOpen,
+        setIsSettingsOpen,
+        setIsCreateGroupOpen,
+        setIsJoinGroupOpen,
         toggleRightSidebar,
         selectConversation,
         startConversationWithUser,
+        createGroupConversation,
+        joinGroupWithCode,
         sendMessage,
         deleteActiveConversation,
         fetchConversations,

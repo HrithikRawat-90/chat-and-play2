@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useChat } from '../../context/ChatContext';
 import {
   ArrowLeft,
@@ -7,6 +7,9 @@ import {
   Phone,
   Info,
   Gamepad2,
+  Copy,
+  Check,
+  Users,
 } from 'lucide-react';
 
 const ChatHeader = ({ onPlayTogetherClick }) => {
@@ -19,13 +22,25 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
     isUserOnline,
   } = useChat();
 
+  const [copiedCode, setCopiedCode] = useState(false);
+
   const contact = getOtherParticipant(activeConversation);
-  const name = contact?.name || 'Conversation';
+  const isGroup = Boolean(activeConversation?.isGroup);
+  const name = isGroup ? activeConversation?.groupName : (contact?.name || 'Conversation');
   const isBot = Boolean(contact?.isBot || name === 'Chatbot');
   const avatar =
-    contact?.profilePicture ||
+    (isGroup ? activeConversation?.groupAvatar : contact?.profilePicture) ||
     `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
   const isOnline = isBot ? true : (contact?._id ? isUserOnline(contact._id) : Boolean(contact?.isOnline));
+
+  const handleCopyGroupCode = (e) => {
+    e.stopPropagation();
+    if (activeConversation?.groupCode) {
+      navigator.clipboard.writeText(activeConversation.groupCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2500);
+    }
+  };
 
   return (
     <div className="h-16 px-3 sm:px-6 flex items-center justify-between border-b border-purple-900/30 bg-[#130f24] select-none flex-shrink-0 sticky top-0 z-30 w-full shadow-md">
@@ -50,8 +65,13 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
               alt={name}
               className="w-10 h-10 rounded-full object-cover bg-purple-950 border border-purple-800/40 group-hover:border-purple-500/60 transition-colors"
             />
-            {isOnline && (
+            {isOnline && !isGroup && (
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-[#130f24]" />
+            )}
+            {isGroup && (
+              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-indigo-600 rounded-full ring-2 ring-[#130f24] flex items-center justify-center">
+                <Users className="w-2 h-2 text-white" />
+              </span>
             )}
           </div>
 
@@ -60,25 +80,43 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
               <h2 className="font-semibold text-white text-sm sm:text-base truncate leading-tight group-hover:text-purple-300 transition-colors">
                 {name}
               </h2>
-              {(contact?.isBot || name === 'Chatbot') && (
-                <span className="px-1.5 py-0.5 rounded-md bg-purple-600/30 border border-purple-500/40 text-[10px] font-bold text-purple-300 uppercase tracking-wider flex-shrink-0">
-                  Gemini AI
+              {isGroup && (
+                <span className="px-1.5 py-0.5 rounded-md bg-indigo-600/30 border border-indigo-500/40 text-[10px] font-bold text-indigo-300 uppercase tracking-wider flex-shrink-0">
+                  Group
                 </span>
               )}
             </div>
-            <p className="text-[11px] sm:text-xs text-purple-300/60 leading-none mt-0.5 flex items-center gap-1.5 truncate">
-              <span
-                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isOnline ? 'bg-emerald-400' : 'bg-gray-500'
+
+            {isGroup ? (
+              <div className="flex items-center gap-2 mt-0.5 text-[11px] sm:text-xs text-purple-300/70 leading-none">
+                <span>{activeConversation.participants?.length || 1} members</span>
+                {activeConversation.groupCode && (
+                  <button
+                    onClick={handleCopyGroupCode}
+                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-950/80 hover:bg-purple-900 border border-purple-800/50 text-purple-300 hover:text-white font-mono text-[10px] transition-colors cursor-pointer"
+                    title="Click to copy group join code"
+                  >
+                    <span>{activeConversation.groupCode}</span>
+                    {copiedCode ? (
+                      <Check className="w-2.5 h-2.5 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-2.5 h-2.5 text-purple-400" />
+                    )}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <p className="text-[11px] sm:text-xs text-purple-300/60 leading-none mt-0.5 flex items-center gap-1.5 truncate">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    isOnline ? 'bg-emerald-400' : 'bg-gray-500'
                   }`}
-              />
-              <span className="truncate">
-                {isOnline
-                  ? contact?.isBot || name === 'Chatbot'
-                    ? 'Gemini 3.8 Flash Online'
-                    : 'Online'
-                  : 'Offline'}
-              </span>
-            </p>
+                />
+                <span className="truncate">
+                  {isOnline ? 'Online' : 'Offline'}
+                </span>
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -119,8 +157,8 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
         <button
           onClick={toggleRightSidebar}
           className={`p-2 rounded-xl transition-colors ${isRightSidebarOpen
-              ? 'text-purple-300 bg-purple-900/50'
-              : 'text-purple-300/70 hover:text-white hover:bg-purple-900/40'
+            ? 'text-purple-300 bg-purple-900/50'
+            : 'text-purple-300/70 hover:text-white hover:bg-purple-900/40'
             }`}
           title="Contact information"
         >

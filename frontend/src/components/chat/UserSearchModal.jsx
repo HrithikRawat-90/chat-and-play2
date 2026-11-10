@@ -106,11 +106,6 @@ const UserSearchModal = () => {
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <h4 className="text-sm font-medium text-white truncate">{u.name}</h4>
-                      {(u.isBot || u.name === 'Chatbot') && (
-                        <span className="px-1.5 py-0.2 rounded bg-purple-600/30 border border-purple-500/40 text-[9px] font-bold text-purple-300 uppercase tracking-wider">
-                          AI Bot
-                        </span>
-                      )}
                     </div>
                     <p className="text-xs text-purple-300/50 truncate">{u.bio || 'Chat & Play user'}</p>
                   </div>

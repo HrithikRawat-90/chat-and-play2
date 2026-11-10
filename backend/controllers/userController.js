@@ -65,6 +65,48 @@ export const getUserById = async (req, res) => {
   }
 };
 
+// @desc    Update current user's profile (name, bio, profilePicture)
+// @route   PUT /api/users/profile
+// @access  Private
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, bio, profilePicture } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    if (name && name.trim()) user.name = name.trim();
+    if (typeof bio === 'string') user.bio = bio.trim();
+    if (typeof profilePicture === 'string') user.profilePicture = profilePicture.trim();
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully.',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        bio: user.bio,
+        profilePicture: user.profilePicture,
+        isOnline: user.isOnline,
+      },
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Server error updating profile.',
+    });
+  }
+};
+
 // @desc    Toggle block/unblock a user
 // @route   POST /api/users/block/:id
 // @access  Private

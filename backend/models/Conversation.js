@@ -9,6 +9,35 @@ const conversationSchema = new mongoose.Schema(
         required: true,
       },
     ],
+    isGroup: {
+      type: Boolean,
+      default: false,
+    },
+    groupName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    groupAvatar: {
+      type: String,
+      default: '',
+    },
+    groupCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      uppercase: true,
+      trim: true,
+    },
+    groupAdmin: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    groupDescription: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     lastMessage: {
       text: {
         type: String,

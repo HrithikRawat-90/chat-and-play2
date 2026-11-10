@@ -29,7 +29,7 @@
   }
 }
 
-/* Custom scrollbars matching dark purple UI */
+/* Custom scrollbars matching theme UI */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -40,10 +40,39 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.25);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* Dynamic Themes */
+html[data-theme="midnight"] #root {
+  filter: hue-rotate(35deg) brightness(0.95);
+}
+html[data-theme="midnight"] img {
+  filter: hue-rotate(-35deg) brightness(1.05);
+}
+
+html[data-theme="emerald"] #root {
+  filter: hue-rotate(180deg) saturate(1.15);
+}
+html[data-theme="emerald"] img {
+  filter: hue-rotate(-180deg) saturate(0.87);
+}
+
+html[data-theme="sunset"] #root {
+  filter: hue-rotate(315deg) saturate(1.2);
+}
+html[data-theme="sunset"] img {
+  filter: hue-rotate(-315deg) saturate(0.83);
+}
+
+html[data-theme="ocean"] #root {
+  filter: hue-rotate(65deg) saturate(1.1);
+}
+html[data-theme="ocean"] img {
+  filter: hue-rotate(-65deg) saturate(0.91);
 }

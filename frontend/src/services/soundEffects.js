@@ -42,27 +42,56 @@ class SoundEffects {
     }
   }
 
-  // Friendly chime when an incoming message is received
+  // Friendly chime when an incoming message is received (Apple-style Tri-tone)
   playMessageReceived() {
     try {
       this.init();
       if (!this.ctx) return;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, this.ctx.currentTime); // A5
-      osc.frequency.exponentialRampToValueAtTime(659.25, this.ctx.currentTime + 0.12); // E5
+      // Classic Apple iOS Tri-tone bell notes: G#5, B5, E6
+      const triToneNotes = [
+        { freq: 830.61, time: 0, duration: 0.18, vol: 0.22 },    // G#5
+        { freq: 987.77, time: 0.09, duration: 0.18, vol: 0.24 },  // B5
+        { freq: 1318.51, time: 0.18, duration: 0.38, vol: 0.28 }, // E6 (lingering bell finish)
+      ];
 
-      gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+      const now = this.ctx.currentTime;
 
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      triToneNotes.forEach(({ freq, time, duration, vol }) => {
+        const osc = this.ctx.createOscillator();
+        const overtone = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
 
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.15);
-    } catch (e) {}
+        // Fundamental pure crystal sine
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + time);
+
+        // Subtle harmonic shimmer overtone for rich marimba/bell timbre
+        overtone.type = 'triangle';
+        overtone.frequency.setValueAtTime(freq * 2, now + time);
+
+        // Apple bell chime envelope: rapid attack, smooth exponential chime decay
+        gain.gain.setValueAtTime(0.001, now + time);
+        gain.gain.exponentialRampToValueAtTime(vol, now + time + 0.012);
+        gain.gain.exponentialRampToValueAtTime(vol * 0.4, now + time + duration * 0.4);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + time + duration);
+
+        osc.connect(gain);
+        overtone.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now + time);
+        overtone.start(now + time);
+
+        osc.stop(now + time + duration);
+        overtone.stop(now + time + duration);
+      });
+    } catch (e) {
+      console.warn('Could not play notification sound:', e.message);
+    }
   }
 
   // Crisp click when a Tic-Tac-Toe move is made
@@ -142,4 +171,17 @@ class SoundEffects {
 }
 
 export const sounds = new SoundEffects();
+
+// Unlock AudioContext on first user interaction so Apple chime plays reliably
+if (typeof window !== 'undefined') {
+  const unlockAudio = () => {
+    sounds.init();
+    ['click', 'keydown', 'touchstart'].forEach((evt) =>
+      window.removeEventListener(evt, unlockAudio)
+    );
+  };
+  ['click', 'keydown', 'touchstart'].forEach((evt) =>
+    window.addEventListener(evt, unlockAudio, { passive: true })
+  );
+}
 

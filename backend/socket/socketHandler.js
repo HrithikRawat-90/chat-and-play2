@@ -201,12 +201,15 @@ export const initSocket = (server) => {
 
         if (callback) callback({ success: true, message: populatedMsg });
 
-        // Auto-reply if conversational partner is Chatbot
+        // Auto-reply if conversational partner is Chatbot (or mentioned in group)
         try {
           const participants = await User.find({ _id: { $in: conversation.participants } });
           const botUser = participants.find((p) => p.isBot || p.email === 'chatbot@chatplay.ai');
 
-          if (botUser && botUser._id.toString() !== userId) {
+          const isMentioned = text && (text.includes('@Chatbot') || text.includes('@chatbot'));
+          const shouldBotReply = botUser && botUser._id.toString() !== userId && (!conversation.isGroup || isMentioned);
+
+          if (shouldBotReply) {
             // 1. Emit typing indicator for bot
             io.to(conversationId).emit('typing:start', {
               conversationId,

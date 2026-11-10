@@ -89,6 +89,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateCurrentUser = (updatedData) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...updatedData };
+      localStorage.setItem('chat_play_user', JSON.stringify(merged));
+      return merged;
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -100,6 +108,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        updateCurrentUser,
         isAuthenticated: !!token && !!user,
       }}
     >

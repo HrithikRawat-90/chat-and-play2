@@ -11,6 +11,8 @@ const ChatList = () => {
     selectConversation,
     loadingConversations,
     setIsSearchModalOpen,
+    setIsCreateGroupOpen,
+    setIsJoinGroupOpen,
     getOtherParticipant,
     activeTab,
   } = useChat();
@@ -18,22 +20,48 @@ const ChatList = () => {
   const [search, setSearch] = useState('');
 
   const filteredConversations = useMemo(() => {
-    if (!search.trim()) return conversations;
-    return conversations.filter((conv) => {
+    // 1. Filter by active tab (1-on-1 chats vs groups)
+    const tabFiltered = conversations.filter((conv) => {
+      if (activeTab === 'groups') return Boolean(conv.isGroup);
+      return !conv.isGroup;
+    });
+
+    if (!search.trim()) return tabFiltered;
+
+    // 2. Filter by search query
+    return tabFiltered.filter((conv) => {
       const other = getOtherParticipant(conv);
-      const name = other?.name?.toLowerCase() || '';
+      const name = (conv.isGroup ? conv.groupName : other?.name)?.toLowerCase() || '';
       const lastMsg = conv.lastMessage?.text?.toLowerCase() || '';
       return (
         name.includes(search.toLowerCase()) ||
         lastMsg.includes(search.toLowerCase())
       );
     });
-  }, [conversations, search, getOtherParticipant]);
+  }, [conversations, activeTab, search, getOtherParticipant]);
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-[#130f24]">
       {/* Search Bar */}
       <SearchBar search={search} setSearch={setSearch} />
+
+      {/* Group Action Buttons Bar (Shown when on Groups tab) */}
+      {activeTab === 'groups' && (
+        <div className="px-3 pb-2 pt-1 flex items-center gap-2 border-b border-purple-900/20">
+          <button
+            onClick={() => setIsCreateGroupOpen(true)}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md shadow-purple-600/25 transition-all cursor-pointer"
+          >
+            <span>+ Create Group</span>
+          </button>
+          <button
+            onClick={() => setIsJoinGroupOpen(true)}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 border border-purple-800/40 text-purple-200 hover:text-white text-xs font-medium transition-all cursor-pointer"
+          >
+            <span>🔑 Join Code</span>
+          </button>
+        </div>
+      )}
 
       {/* Conversation Items List */}
       <div className="flex-1 overflow-y-auto space-y-1 py-1">
@@ -48,19 +76,42 @@ const ChatList = () => {
               <MessageSquarePlus className="w-6 h-6" />
             </div>
             <p className="text-sm font-medium text-white mb-1">
-              {search ? 'No conversations match' : 'No chats yet'}
+              {search
+                ? 'No conversations match'
+                : activeTab === 'groups'
+                ? 'No groups yet'
+                : 'No chats yet'}
             </p>
-            <p className="text-xs text-purple-300/60 max-w-[200px] mb-4">
+            <p className="text-xs text-purple-300/60 max-w-[220px] mb-4">
               {search
                 ? 'Try searching for a different keyword or contact'
+                : activeTab === 'groups'
+                ? 'Create your own group or join one with a 6-character code'
                 : 'Start a new conversation with registered members'}
             </p>
-            <button
-              onClick={() => setIsSearchModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md shadow-purple-600/30 transition-all cursor-pointer"
-            >
-              Start New Chat
-            </button>
+            {activeTab === 'groups' ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsCreateGroupOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md shadow-purple-600/30 transition-all cursor-pointer"
+                >
+                  Create Group
+                </button>
+                <button
+                  onClick={() => setIsJoinGroupOpen(true)}
+                  className="px-3.5 py-2 rounded-xl border border-purple-800/40 text-purple-300 hover:text-white text-xs font-medium transition-all cursor-pointer"
+                >
+                  Join with Code
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsSearchModalOpen(true)}
+                className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md shadow-purple-600/30 transition-all cursor-pointer"
+              >
+                Start New Chat
+              </button>
+            )}
           </div>
         ) : (
           filteredConversations.map((conv) => (

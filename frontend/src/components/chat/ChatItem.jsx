@@ -65,9 +65,9 @@ const ChatItem = ({ conversation, isSelected, onClick }) => {
             >
               {name}
             </h3>
-            {(contact?.isBot || name === 'Chatbot') && (
-              <span className="px-1.5 py-0.2 rounded bg-purple-600/30 border border-purple-500/40 text-[9px] font-bold text-purple-300 uppercase tracking-wider">
-                AI
+            {conversation.isGroup && (
+              <span className="px-1.5 py-0.2 rounded bg-indigo-600/30 border border-indigo-500/40 text-[9px] font-bold text-indigo-300 uppercase tracking-wider flex-shrink-0">
+                Group
               </span>
             )}
           </div>
@@ -88,8 +88,8 @@ const ChatItem = ({ conversation, isSelected, onClick }) => {
           <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
             {isPinned && <Pin className="w-3 h-3 text-purple-400 rotate-45" />}
             {unreadCount > 0 && (
-              <span className="px-1.5 py-0.5 min-w-[18px] text-center text-[10px] font-bold bg-purple-600 text-white rounded-full">
-                {unreadCount}
+              <span className="px-2 py-0.5 min-w-[20px] text-center text-[10px] font-extrabold bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-full shadow-md shadow-purple-600/40 animate-pulse">
+                {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </div>

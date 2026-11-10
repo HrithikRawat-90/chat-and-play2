@@ -8,6 +8,9 @@ import MessageInput from './MessageInput';
 import ContactInfo from './ContactInfo';
 import EmptyChatState from './EmptyChatState';
 import UserSearchModal from './UserSearchModal';
+import SettingsModal from './SettingsModal';
+import CreateGroupModal from './CreateGroupModal';
+import JoinGroupModal from './JoinGroupModal';
 import TicTacToeModal from '../../games/TicTacToeModal';
 import GameInviteBanner from '../../games/GameInviteBanner';
 
@@ -68,6 +71,13 @@ const ChatContainer = () => {
 
       {/* User Search & Discovery Modal */}
       <UserSearchModal />
+
+      {/* App & Profile Settings Modal */}
+      <SettingsModal />
+
+      {/* Group Creation & Join Modals */}
+      <CreateGroupModal />
+      <JoinGroupModal />
 
       {/* Real-Time Multiplayer Tic-Tac-Toe Modal */}
       <TicTacToeModal />

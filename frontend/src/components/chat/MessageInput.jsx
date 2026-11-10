@@ -205,7 +205,7 @@ const MessageInput = () => {
                 className="w-full py-3 px-4 border-2 border-dashed border-purple-600/50 hover:border-purple-400 rounded-xl bg-purple-950/30 hover:bg-purple-900/20 text-purple-200 text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <Upload className="w-4 h-4 text-purple-400" />
-                <span>Upload image from your computer</span>
+                <span>Upload image from your device</span>
               </button>
             </div>
 
@@ -333,7 +333,7 @@ const MessageInput = () => {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           className="p-2 text-purple-300/70 hover:text-white hover:bg-purple-900/40 rounded-xl transition-colors cursor-pointer"
-          title="Upload image from computer"
+          title="Upload image from your device"
         >
           <Upload className="w-4 h-4" />
         </button>

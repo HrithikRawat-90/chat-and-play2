@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getUsers,
   getUserById,
+  updateProfile,
   toggleBlockUser,
   getBlockedUsers,
   reportUser,
@@ -13,6 +14,7 @@ const router = express.Router();
 router.use(protect); // All user routes are protected
 
 router.get('/', getUsers);
+router.put('/profile', updateProfile);
 router.get('/me/blocked', getBlockedUsers);
 router.post('/block/:id', toggleBlockUser);
 router.post('/report', reportUser);
