@@ -3,7 +3,7 @@ services:
     name: chat-and-play
     env: node
     plan: free
-    buildCommand: npm install && cd frontend && npm install && npm run build && cd ../backend && npm install
+    buildCommand: npm install --include=dev && cd frontend && npm install --include=dev && npm run build && cd ../backend && npm install --include=dev
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
