@@ -35,6 +35,22 @@ export const ChatProvider = ({ children }) => {
     activeConversationRef.current = activeConversation;
   }, [activeConversation]);
 
+  // Fetch messages when activeConversation changes
+  const fetchMessages = useCallback(async (conversationId) => {
+    if (!conversationId) return;
+    setLoadingMessages(true);
+    try {
+      const res = await api.get(`/messages/${conversationId}`);
+      if (res.data.success) {
+        setMessages(res.data.messages);
+      }
+    } catch (err) {
+      console.warn('Could not fetch messages:', err.message);
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, []);
+
   // Fetch all conversations for logged-in user
   const fetchConversations = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -71,22 +87,6 @@ export const ChatProvider = ({ children }) => {
       }
     }
   }, [isConnected, joinConversation]);
-
-  // Fetch messages when activeConversation changes
-  const fetchMessages = useCallback(async (conversationId) => {
-    if (!conversationId) return;
-    setLoadingMessages(true);
-    try {
-      const res = await api.get(`/messages/${conversationId}`);
-      if (res.data.success) {
-        setMessages(res.data.messages);
-      }
-    } catch (err) {
-      console.warn('Could not fetch messages:', err.message);
-    } finally {
-      setLoadingMessages(false);
-    }
-  }, []);
 
   // Handle conversation switching with socket room management
   const selectConversation = (conv) => {

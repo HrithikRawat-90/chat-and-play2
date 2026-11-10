@@ -203,3 +203,4 @@ Do NOT include markdown formatting or backticks around the JSON.`;
     suggestions: suggestions.slice(0, 3),
   };
 };
+

@@ -60,3 +60,4 @@ export const getAiStatus = async (req, res) => {
     });
   }
 };
+

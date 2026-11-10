@@ -10,3 +10,4 @@ router.post('/suggest', getMessageSuggestion);
 router.get('/status', getAiStatus);
 
 export default router;
+
