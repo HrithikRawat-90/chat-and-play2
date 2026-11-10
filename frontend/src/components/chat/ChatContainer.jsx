@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useChat } from '../../context/ChatContext';
 import { useGame } from '../../games/GameContext';
 import LeftSidebar from './LeftSidebar';
@@ -15,6 +15,25 @@ const ChatContainer = () => {
   const { activeConversation, mobileView } = useChat();
   const { sendInvite } = useGame();
 
+  // Prevent mobile keyboard from scrolling the window / displacing the header
+  useEffect(() => {
+    const lockScroll = () => {
+      if (window.scrollY !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+    window.addEventListener('scroll', lockScroll, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('scroll', lockScroll, { passive: true });
+    }
+    return () => {
+      window.removeEventListener('scroll', lockScroll);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('scroll', lockScroll);
+      }
+    };
+  }, []);
+
   const handlePlayTogether = () => {
     if (activeConversation) {
       sendInvite(activeConversation._id);
@@ -22,7 +41,7 @@ const ChatContainer = () => {
   };
 
   return (
-    <div className="flex h-screen h-[100dvh] w-screen overflow-hidden bg-[#090614] text-[#e2e8f0]">
+    <div className="fixed inset-0 w-full h-full flex overflow-hidden bg-[#090614] text-[#e2e8f0]">
       {/* 1. Left Sidebar */}
       <LeftSidebar />
 

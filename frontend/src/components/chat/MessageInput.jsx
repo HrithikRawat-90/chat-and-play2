@@ -391,8 +391,14 @@ const MessageInput = () => {
             value={text}
             onChange={handleTextChange}
             onKeyDown={handleKeyDown}
+            onFocus={() => {
+              if (window.scrollY !== 0) {
+                window.scrollTo(0, 0);
+              }
+              document.body.scrollTop = 0;
+            }}
             placeholder="Type a message"
-            className="w-full py-2.5 px-4 bg-[#0c0919] border border-purple-900/40 rounded-2xl text-white placeholder-purple-300/35 text-sm focus:outline-none focus:border-purple-500/70 transition-all"
+            className="w-full py-2.5 px-4 bg-[#0c0919] border border-purple-900/40 rounded-2xl text-white placeholder-purple-300/35 text-base sm:text-sm focus:outline-none focus:border-purple-500/70 transition-all"
           />
         </div>
 

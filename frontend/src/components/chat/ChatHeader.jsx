@@ -27,7 +27,7 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
   const isOnline = contact?._id ? isUserOnline(contact._id) : (contact?.isOnline ?? false);
 
   return (
-    <div className="h-16 px-3 sm:px-6 flex items-center justify-between border-b border-purple-900/30 bg-[#130f24] select-none flex-shrink-0 sticky top-0 z-20">
+    <div className="h-16 px-3 sm:px-6 flex items-center justify-between border-b border-purple-900/30 bg-[#130f24] select-none flex-shrink-0 sticky top-0 z-30 w-full shadow-md">
       {/* Left Contact Details & Mobile Back */}
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 mr-2">
         <button

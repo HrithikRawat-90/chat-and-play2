@@ -12,14 +12,16 @@ const MessageFeed = () => {
     currentTypingUsers,
   } = useChat();
 
-  const bottomRef = useRef(null);
+  const feedRef = useRef(null);
 
   const contact = getOtherParticipant(activeConversation);
   const contactName = contact?.name || 'Partner';
   const contactAvatar = contact?.profilePicture;
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (feedRef.current) {
+      feedRef.current.scrollTop = feedRef.current.scrollHeight;
+    }
   }, [messages, currentTypingUsers]);
 
   if (loadingMessages) {
@@ -35,7 +37,10 @@ const MessageFeed = () => {
   const typerName = currentTypingUsers[0]?.userName || contactName;
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col space-y-1">
+    <div
+      ref={feedRef}
+      className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 flex flex-col space-y-1 overscroll-contain"
+    >
       {messages.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-purple-300/50">
           <div className="w-16 h-16 rounded-full bg-purple-950/40 border border-purple-800/30 flex items-center justify-center mb-3">
@@ -80,8 +85,6 @@ const MessageFeed = () => {
           <span className="text-[11px] text-purple-300/60">{typerName} is typing...</span>
         </div>
       )}
-
-      <div ref={bottomRef} />
     </div>
   );
 };
