@@ -251,3 +251,5 @@ npm start
 The entire application runs on `http://localhost:5000`.
 
 A ready-to-deploy [render.yaml](file:///e:/Projects/ChattingApplication/render.yaml) is included for 1-click cloud deployment on Render.
+#   c h a t - a n d - p l a y  
+ 
