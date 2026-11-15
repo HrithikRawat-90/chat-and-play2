@@ -188,6 +188,96 @@ html:not([data-theme]) .shadow-purple-950\/80 {
 /* ========================================================
    OTHER THEMES (Cyberpunk Violet, Emerald, Midnight, etc.)
    ======================================================== */
+/* Complete the neutral dark palette for older purple components. */
+html[data-theme="apple-dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="apple-dark"] .auth-screen {
+  background: radial-gradient(ellipse at 50% -20%, #1c2634 0%, #000 65%) !important;
+  height: 100dvh;
+  min-height: 0;
+  align-items: safe center;
+  overflow-y: auto;
+}
+
+html[data-theme="apple-dark"] .auth-brand {
+  background-image: linear-gradient(145deg, #0a84ff, #0064d2) !important;
+}
+
+html[data-theme="apple-dark"] :is(
+  [class~="bg-[#0b0717]"], [class~="bg-[#0c0819]"],
+  [class~="bg-[#0d091a]"], [class~="bg-[#0e0a1f]"],
+  [class~="bg-[#100c20]"], [class~="bg-[#120b24]"],
+  [class~="bg-[#130e26]"], [class~="bg-[#130e26]/90"],
+  [class~="bg-[#110b24]/60"]
+) {
+  background-color: #1c1c1e !important;
+}
+
+html[data-theme="apple-dark"] :is(
+  [class~="bg-[#16102e]"], [class~="bg-[#161031]"],
+  [class~="bg-[#171033]"], [class~="bg-[#171131]"],
+  [class~="bg-[#181133]"], [class~="bg-[#181136]/70"],
+  [class~="bg-[#191136]"], [class~="bg-[#1a1236]/90"],
+  [class~="bg-[#1b133b]"], [class~="bg-[#1e153f]"],
+  [class~="bg-purple-950"], [class~="bg-purple-950/30"],
+  [class~="bg-purple-950/40"], [class~="bg-purple-950/50"],
+  [class~="bg-purple-950/60"], [class~="bg-purple-950/80"],
+  [class~="bg-purple-900/90"], [class~="bg-purple-900/95"]
+) {
+  background-color: #2c2c2e !important;
+}
+
+html[data-theme="apple-dark"] :is(
+  [class~="bg-purple-600/20"], [class~="bg-purple-600/30"],
+  [class~="bg-purple-900/20"], [class~="bg-purple-900/30"],
+  [class~="bg-purple-900/40"]
+) {
+  background-color: rgba(10, 132, 255, 0.14) !important;
+}
+
+html[data-theme="apple-dark"] :is(
+  [class~="text-purple-100"], [class~="text-purple-200"],
+  [class~="text-purple-200/80"], [class~="text-purple-300/80"]
+) { color: #c7c7cc !important; }
+
+html[data-theme="apple-dark"] :is(
+  [class~="text-purple-400/50"], [class~="text-purple-400/60"],
+  [class~="text-purple-500"], [class~="text-purple-600"],
+  [class~="text-indigo-300"], [class~="text-indigo-400"]
+) { color: #0a84ff !important; }
+
+html[data-theme="apple-dark"] :is(
+  [class~="border-purple-900/20"], [class~="border-purple-800/50"],
+  [class~="border-purple-800/60"], [class~="border-purple-700/40"],
+  [class~="border-purple-700/50"], [class~="border-indigo-500/40"],
+  [class~="border-indigo-500/50"]
+) { border-color: rgba(255, 255, 255, 0.12) !important; }
+
+html[data-theme="apple-dark"] :is(
+  [class~="border-purple-400"], [class~="border-purple-400/40"],
+  [class~="border-purple-500"], [class~="border-purple-500/40"],
+  [class~="border-purple-500/50"], [class~="border-purple-500/60"],
+  [class~="border-purple-500/70"]
+) { border-color: rgba(10, 132, 255, 0.7) !important; }
+
+html[data-theme="apple-dark"] :is(input, textarea):focus {
+  border-color: #0a84ff !important;
+  --tw-ring-color: rgba(10, 132, 255, 0.4);
+}
+
+html[data-theme="apple-dark"] :is(input, textarea)::placeholder {
+  color: #8e8e93;
+  opacity: 1;
+}
+
+html[data-theme="apple-dark"] :is(
+  [class~="ring-purple-400"], [class~="ring-purple-400/30"],
+  [class~="ring-purple-400/40"], [class~="ring-purple-500"],
+  [class~="ring-purple-500/40"], [class~="ring-purple-500/50"]
+) { --tw-ring-color: #0a84ff; }
+
 html[data-theme="purple"] {
   font-family: system-ui, -apple-system, sans-serif !important;
 }

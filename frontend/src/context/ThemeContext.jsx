@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const ThemeContext = createContext(null);
 
@@ -48,25 +49,22 @@ export const THEMES = [
 ];
 
 export const ThemeProvider = ({ children }) => {
+  const { pathname } = useLocation();
   const [currentTheme, setCurrentTheme] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('chatplay_theme');
-      // If user had the old default 'purple' or nothing, switch to 'apple-dark'
-      if (!saved || saved === 'purple') {
-        localStorage.setItem('chatplay_theme', 'apple-dark');
-        return 'apple-dark';
-      }
-      return saved;
+      return THEMES.some((theme) => theme.id === saved) ? saved : 'apple-dark';
     }
     return 'apple-dark';
   });
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', currentTheme);
+      const isAuthPage = pathname === '/login' || pathname === '/register';
+      document.documentElement.setAttribute('data-theme', isAuthPage ? 'apple-dark' : currentTheme);
       localStorage.setItem('chatplay_theme', currentTheme);
     }
-  }, [currentTheme]);
+  }, [currentTheme, pathname]);
 
   const changeTheme = (themeId) => {
     if (THEMES.some((t) => t.id === themeId)) {

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User, Gamepad2, ArrowRight, AlertCircle, Loader2, Sparkles, Smile } from 'lucide-react';
+import { Mail, Lock, User, Gamepad2, ArrowRight, AlertCircle, Loader2, Upload } from 'lucide-react';
 
 const PRESET_AVATARS = [
   'https://api.dicebear.com/7.x/bottts/svg?seed=Luna',
@@ -26,6 +26,8 @@ const Register = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState('');
+  const [readingPhoto, setReadingPhoto] = useState(false);
+  const photoReader = useRef(null);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -36,7 +38,41 @@ const Register = () => {
   };
 
   const handleSelectAvatar = (url) => {
+    photoReader.current?.abort();
+    setReadingPhoto(false);
+    setLocalError('');
     setFormData((prev) => ({ ...prev, profilePicture: url }));
+  };
+
+  const handlePhotoUpload = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    photoReader.current?.abort();
+    setReadingPhoto(false);
+    if (!file.type.startsWith('image/')) {
+      setLocalError('Please choose an image file.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setLocalError('Please choose an image smaller than 2 MB.');
+      return;
+    }
+    setLocalError('');
+    setReadingPhoto(true);
+    const reader = new FileReader();
+    photoReader.current = reader;
+    reader.onload = () => {
+      setFormData((prev) => ({ ...prev, profilePicture: reader.result }));
+      setReadingPhoto(false);
+      photoReader.current = null;
+    };
+    reader.onerror = () => {
+      setLocalError('Could not read the photo. Please try another image.');
+      setReadingPhoto(false);
+      photoReader.current = null;
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
@@ -78,11 +114,11 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#090614] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,58,220,0.25),rgba(255,255,255,0))] p-4 sm:p-6 lg:p-8">
+    <div className="auth-screen min-h-screen flex items-center justify-center bg-[#090614] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,58,220,0.25),rgba(255,255,255,0))] p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-lg">
         {/* Brand Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 shadow-lg shadow-purple-600/30 mb-3 ring-1 ring-purple-400/30">
+          <div className="auth-brand inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 shadow-lg shadow-purple-600/30 mb-3 ring-1 ring-purple-400/30">
             <Gamepad2 className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
@@ -135,6 +171,15 @@ const Register = () => {
                   </button>
                 ))}
               </div>
+              <div className="mt-3 flex items-center gap-3">
+                <img src={formData.profilePicture} alt="Selected profile" className="w-10 h-10 rounded-full object-cover bg-[#2c2c2e]" />
+                <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/15 bg-[#2c2c2e] text-sm text-white cursor-pointer hover:bg-[#3a3a3c] focus-within:ring-2 focus-within:ring-blue-500">
+                  <Upload className="w-4 h-4" />
+                  <span>{readingPhoto ? 'Reading photo...' : 'Upload photo from device'}</span>
+                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="sr-only" />
+                </label>
+              </div>
+              <p className="mt-1.5 text-xs text-purple-300/60">Optional. Choose an image up to 2 MB.</p>
             </div>
 
             <div>
@@ -148,7 +193,7 @@ const Register = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="e.g. Alex Morgan"
+                  placeholder="e.g. Shyamlaal Shukla"
                   required
                   className="w-full pl-10 pr-4 py-2.5 bg-[#0b0818] border border-purple-900/40 rounded-xl text-white placeholder-purple-300/30 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/40 transition-all"
                 />
@@ -228,7 +273,7 @@ const Register = () => {
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || readingPhoto}
               className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium text-sm transition-all shadow-md shadow-purple-600/30 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (

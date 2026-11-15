@@ -43,11 +43,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#090614] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,58,220,0.25),rgba(255,255,255,0))] p-4 sm:p-6 lg:p-8">
+    <div className="auth-screen min-h-screen flex items-center justify-center bg-[#090614] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,58,220,0.25),rgba(255,255,255,0))] p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-md">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 shadow-lg shadow-purple-600/30 mb-4 ring-1 ring-purple-400/30">
+          <div className="auth-brand inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 shadow-lg shadow-purple-600/30 mb-4 ring-1 ring-purple-400/30">
             <Gamepad2 className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
