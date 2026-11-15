@@ -7,24 +7,16 @@ import {
   X,
   User,
   Palette,
-  Sparkles,
   Camera,
   Check,
   Loader2,
-  RefreshCw,
   Sliders,
   Upload,
 } from 'lucide-react';
 
 const PRESET_AVATARS = [
-  'https://api.dicebear.com/7.x/bottts/svg?seed=CyberAlpha&backgroundColor=7c3aed',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=NeonSpecter&backgroundColor=2563eb',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=MatrixGreen&backgroundColor=059669',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=CrimsonViper&backgroundColor=e11d48',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=OceanPulse&backgroundColor=0891b2',
-  'https://api.dicebear.com/7.x/adventurer/svg?seed=ShadowRider',
-  'https://api.dicebear.com/7.x/adventurer/svg?seed=StarGazer',
-  'https://api.dicebear.com/7.x/adventurer/svg?seed=PixelKnight',
+  { label: 'Male avatar', url: '/avatars/male.svg' },
+  { label: 'Female avatar', url: '/avatars/female.svg' },
 ];
 
 const SettingsModal = () => {
@@ -66,12 +58,6 @@ const SettingsModal = () => {
       setTimeout(() => setSuccessToast(''), 2500);
     };
     reader.readAsDataURL(file);
-  };
-
-  const handleRandomizeAvatar = () => {
-    const randomSeed = Math.random().toString(36).substring(7);
-    const newAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${randomSeed}&backgroundColor=7c3aed`;
-    setAvatar(newAvatar);
   };
 
   const handleSave = async (e) => {
@@ -166,9 +152,7 @@ const SettingsModal = () => {
                     <img
                       src={
                         avatar ||
-                        `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(
-                          name || 'User'
-                        )}`
+                        '/avatars/male.svg'
                       }
                       alt="Avatar Preview"
                       className="w-16 h-16 rounded-full object-cover bg-purple-950 border-2 border-purple-500/60 shadow-lg"
@@ -189,14 +173,6 @@ const SettingsModal = () => {
                         <span>Upload from Device</span>
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={handleRandomizeAvatar}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-900/40 hover:bg-purple-800/60 border border-purple-700/40 text-purple-200 text-xs font-medium transition-all cursor-pointer"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Randomize</span>
-                      </button>
                     </div>
 
                     <input
@@ -218,13 +194,14 @@ const SettingsModal = () => {
                   <span className="text-[11px] font-medium text-purple-300/70 block mb-1.5">
                     Select a Preset Avatar:
                   </span>
-                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-                    {PRESET_AVATARS.map((url, i) => (
+                  <div className="flex gap-2">
+                    {PRESET_AVATARS.map(({ url, label }) => (
                       <button
-                        key={i}
+                        key={url}
                         type="button"
+                        aria-label={label}
                         onClick={() => setAvatar(url)}
-                        className={`aspect-square rounded-xl overflow-hidden border-2 p-0.5 transition-all cursor-pointer ${
+                        className={`w-12 h-12 rounded-xl overflow-hidden border-2 p-0.5 transition-all cursor-pointer ${
                           avatar === url
                             ? 'border-purple-400 ring-2 ring-purple-600/50 scale-105'
                             : 'border-purple-900/40 hover:border-purple-500/50'
@@ -232,7 +209,7 @@ const SettingsModal = () => {
                       >
                         <img
                           src={url}
-                          alt="Preset"
+                          alt={label}
                           className="w-full h-full object-cover rounded-lg bg-purple-950/60"
                         />
                       </button>
@@ -312,17 +289,19 @@ const SettingsModal = () => {
             <div className="space-y-4">
               <div>
                 <p className="text-xs text-purple-300/80 mb-3">
-                  Choose a vibrant color scheme. The entire application interface adapts immediately:
+                  Choose a color scheme for the application:
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {themes.map((t) => {
                     const isSelected = currentTheme === t.id;
                     return (
-                      <div
+                      <button
                         key={t.id}
+                        type="button"
+                        aria-pressed={isSelected}
                         onClick={() => changeTheme(t.id)}
-                        className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 ${
+                        className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 text-left ${
                           isSelected
                             ? 'border-purple-400 bg-purple-950/40 shadow-lg shadow-purple-950/60'
                             : 'border-purple-900/40 hover:border-purple-700/60 bg-[#0d091a]'
@@ -351,18 +330,12 @@ const SettingsModal = () => {
                             {t.description}
                           </p>
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-purple-950/30 border border-purple-800/30 text-[11px] text-purple-300/70 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                <span>
-                  Themes are persisted locally on your device and stay applied whenever you return.
-                </span>
-              </div>
             </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { createSocketConnection } from '../socket/socket';
+import { sendMessageWithAck } from '../socket/sendMessage';
 
 const SocketContext = createContext(null);
 
@@ -102,15 +103,9 @@ export const SocketProvider = ({ children }) => {
     }
   }, []);
 
-  const sendRealtimeMessage = useCallback(({ conversationId, text, imageUrl, replyTo }, callback) => {
-    if (socketRef.current && isConnected) {
-      socketRef.current.emit(
-        'message:send',
-        { conversationId, text, imageUrl, replyTo },
-        callback
-      );
-    }
-  }, [isConnected]);
+  const sendRealtimeMessage = useCallback((payload, callback) => {
+    sendMessageWithAck(socketRef.current, payload, callback);
+  }, []);
 
   const startTyping = useCallback((conversationId) => {
     if (socketRef.current && conversationId) {

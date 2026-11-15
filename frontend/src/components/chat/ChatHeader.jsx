@@ -28,7 +28,7 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
   const isBot = Boolean(contact?.isBot || name === 'Chatbot');
   const avatar =
     (isGroup ? activeConversation?.groupAvatar : contact?.profilePicture) ||
-    `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
+    '/avatars/male.svg';
   const isOnline = isBot ? true : (contact?._id ? isUserOnline(contact._id) : Boolean(contact?.isOnline));
 
   const handleCopyGroupCode = (e) => {
@@ -122,14 +122,14 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
       {/* Right Action Icons & Play Together Button */}
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
         {/* Play Together Standout Button */}
-        <button
+        {!activeConversation?.isModerationInbox && <button
           onClick={onPlayTogetherClick}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#007aff] hover:bg-[#006ee6] text-white font-medium text-xs shadow-sm active:scale-95 transition-all cursor-pointer mr-1"
           title="Play Tic-Tac-Toe together!"
         >
           <Gamepad2 className="w-4 h-4" />
           <span className="hidden sm:inline font-semibold">Play Together</span>
-        </button>
+        </button>}
 
         <button
           className="p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"

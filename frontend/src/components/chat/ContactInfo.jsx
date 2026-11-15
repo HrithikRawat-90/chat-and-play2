@@ -45,6 +45,7 @@ const ContactInfo = () => {
   const [reportReason, setReportReason] = useState(REPORT_REASONS[0]);
   const [reportDetails, setReportDetails] = useState('');
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [reportError, setReportError] = useState('');
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeletingChat, setIsDeletingChat] = useState(false);
@@ -90,7 +91,7 @@ const ContactInfo = () => {
   const firstName = name.split(' ')[0];
   const avatar =
     (isGroup ? activeConversation?.groupAvatar : contact?.profilePicture) ||
-    `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
+    '/avatars/male.svg';
   const bio = isGroup
     ? activeConversation?.groupDescription || `Group join code: ${activeConversation?.groupCode}`
     : contact?.bio || 'Hey there! I am using Chat & Play.';
@@ -127,20 +128,22 @@ const ContactInfo = () => {
   const handleSubmitReport = async (e) => {
     e.preventDefault();
     if (!contactId || isSubmittingReport) return;
+    setReportError('');
     setIsSubmittingReport(true);
     try {
       const res = await api.post('/users/report', {
         reportedUserId: contactId,
         reason: reportReason,
         details: reportDetails.trim(),
-      });
+      }, { timeout: 15000 });
       if (res.data.success) {
         setShowReportModal(false);
         setReportDetails('');
-        showToast('Report submitted. Our moderation team has received it.');
+        showToast(res.data.message || 'Report sent to the admin.');
       }
+      else setReportError('The report could not be submitted. Please try again.');
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to submit report');
+      setReportError(err.code === 'ECONNABORTED' ? 'The request timed out. Please check your connection and try again.' : (err.response?.data?.message || 'Failed to submit report. Please try again.'));
     } finally {
       setIsSubmittingReport(false);
     }
@@ -266,7 +269,7 @@ const ContactInfo = () => {
               const pName = p.name || 'Member';
               const pAvatar =
                 p.profilePicture ||
-                `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(pName)}`;
+                '/avatars/male.svg';
               const isAdmin =
                 activeConversation.groupAdmin &&
                 (activeConversation.groupAdmin._id || activeConversation.groupAdmin)?.toString() ===
@@ -399,6 +402,7 @@ const ContactInfo = () => {
             </div>
 
             <form onSubmit={handleSubmitReport} className="space-y-4 text-xs">
+              {reportError && <p role="alert" className="p-3 rounded-lg bg-red-950/70 border border-red-500/40 text-red-200">{reportError}</p>}
               <div>
                 <label className="block text-purple-200/80 mb-2 font-medium">
                   Select a reason for reporting:

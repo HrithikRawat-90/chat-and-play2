@@ -13,6 +13,10 @@ const conversationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isModerationInbox: {
+      type: Boolean,
+      default: false,
+    },
     groupName: {
       type: String,
       trim: true,
@@ -65,6 +69,7 @@ const conversationSchema = new mongoose.Schema(
 
 // Index participants for fast lookup
 conversationSchema.index({ participants: 1 });
+conversationSchema.index({ isModerationInbox: 1 }, { unique: true, partialFilterExpression: { isModerationInbox: true } });
 
 const Conversation = mongoose.model('Conversation', conversationSchema);
 export default Conversation;

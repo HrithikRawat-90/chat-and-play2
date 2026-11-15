@@ -95,7 +95,7 @@ const UserSearchModal = () => {
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative flex-shrink-0">
                     <img
-                      src={u.profilePicture || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(u.name)}`}
+                      src={u.profilePicture || '/avatars/male.svg'}
                       alt={u.name}
                       className="w-10 h-10 rounded-full object-cover bg-purple-950/60"
                     />

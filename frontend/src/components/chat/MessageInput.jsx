@@ -18,25 +18,6 @@ import {
 
 const COMMON_EMOJIS = ['😀', '😂', '🔥', '💙', '🎮', '👍', '🎉', '✨', '😎', '🚀'];
 
-const PRESET_ATTACHMENTS = [
-  {
-    title: 'Golden Sunset Fields',
-    url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
-  },
-  {
-    title: 'Neon Cyber City',
-    url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80',
-  },
-  {
-    title: 'Purple Nebula Starfield',
-    url: 'https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?w=800&q=80',
-  },
-  {
-    title: 'Sports Car Night Drive',
-    url: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=80',
-  },
-];
-
 const MessageInput = () => {
   const { sendMessage, activeConversation, startTyping, stopTyping } = useChat();
 
@@ -53,6 +34,7 @@ const MessageInput = () => {
   // Audio recording states
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const [audioError, setAudioError] = useState('');
 
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -73,18 +55,20 @@ const MessageInput = () => {
   }, []);
 
   const startRecording = async () => {
+    setAudioError('');
     try {
-      if (!navigator?.mediaDevices?.getUserMedia) {
-        alert('Voice recording is not supported in this browser.');
+      if (!navigator?.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+        setAudioError('Voice recording requires a supported browser and a secure connection.');
         return;
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      const supportsType = typeof MediaRecorder.isTypeSupported === 'function' ? MediaRecorder.isTypeSupported.bind(MediaRecorder) : () => false;
+      const mimeType = supportsType('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
-        : (MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '');
+        : (supportsType('audio/mp4') ? 'audio/mp4' : '');
 
       const mediaRecorder = mimeType
         ? new MediaRecorder(stream, { mimeType })
@@ -108,7 +92,9 @@ const MessageInput = () => {
       }, 1000);
     } catch (err) {
       console.warn('Microphone access denied:', err);
-      alert('Could not access microphone. Please enable microphone permission in your browser.');
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      setAudioError('Could not start recording. Check your microphone and browser permission.');
     }
   };
 
@@ -146,22 +132,26 @@ const MessageInput = () => {
       }
       audioChunksRef.current = [];
 
-      if (audioBlob.size > 0) {
+      if (audioBlob.size > 2 * 1024 * 1024) {
+        setAudioError('Recording is too large. Please record a shorter message (up to 2 MB).');
+      } else if (audioBlob.size > 0) {
         const reader = new FileReader();
-        reader.onloadend = async () => {
+        setSending(true);
+        reader.onload = async () => {
           const base64Audio = reader.result;
-          setSending(true);
           try {
-            sounds.playMessageSent();
             await sendMessage('', '', null, base64Audio);
+            sounds.playMessageSent();
           } catch (err) {
             console.error('Failed to send voice message:', err);
+            setAudioError(err.message || 'Could not send the voice message.');
           } finally {
             setSending(false);
           }
         };
+        reader.onerror = () => { setSending(false); setAudioError('Could not read the recording. Please try again.'); };
         reader.readAsDataURL(audioBlob);
-      }
+      } else setAudioError('The recording was empty. Please try again.');
       setIsRecording(false);
       setRecordingDuration(0);
     };
@@ -334,27 +324,6 @@ const MessageInput = () => {
               </button>
             </div>
 
-            <p className="text-xs text-zinc-400 mb-2 font-medium">Or choose from preset gallery:</p>
-
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {PRESET_ATTACHMENTS.map((img, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setSelectedImage(img.url);
-                    setShowImageModal(false);
-                  }}
-                  className="group relative rounded-xl overflow-hidden border border-white/10 hover:border-[#007aff] transition-all text-left"
-                >
-                  <img src={img.url} alt={img.title} className="w-full h-20 object-cover" />
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors p-1.5 flex items-end">
-                    <span className="text-[11px] text-white font-medium truncate">{img.title}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-
             <div className="space-y-1.5">
               <label className="text-xs text-zinc-400 font-medium">Or paste an Image URL</label>
               <div className="flex gap-2">
@@ -451,6 +420,8 @@ const MessageInput = () => {
           </button>
         </div>
       )}
+
+      {audioError && <div role="alert" className="mb-2 px-3 py-2 rounded-xl bg-red-950/70 border border-red-500/40 text-red-200 text-xs">{audioError}</div>}
 
       {/* Voice Recording Mode UI */}
       {isRecording ? (

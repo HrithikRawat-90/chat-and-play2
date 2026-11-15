@@ -1,4 +1,5 @@
 import Message from '../models/Message.js';
+import Conversation from '../models/Conversation.js';
 import {
   suggestMessage,
   generateGeminiText,
@@ -12,6 +13,16 @@ import {
 export const getMessageSuggestion = async (req, res) => {
   try {
     const { conversationId, draft = '', context = [] } = req.body;
+
+    if (conversationId) {
+      const conversation = await Conversation.findById(conversationId);
+      if (!conversation || !conversation.participants.some((id) => id.toString() === req.user._id.toString())) {
+        return res.status(403).json({ success: false, message: 'Conversation unavailable.' });
+      }
+      if (conversation.isModerationInbox) {
+        return res.status(403).json({ success: false, message: 'AI suggestions are unavailable for reports.' });
+      }
+    }
 
     let recentMessages = context;
     if ((!recentMessages || recentMessages.length === 0) && conversationId) {

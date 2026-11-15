@@ -45,7 +45,7 @@ const MessageFeed = () => {
         <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-purple-300/50">
           <div className="w-16 h-16 rounded-full bg-purple-950/40 border border-purple-800/30 flex items-center justify-center mb-3">
             <img
-              src={contactAvatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(contactName)}`}
+              src={contactAvatar || '/avatars/male.svg'}
               alt={contactName}
               className="w-14 h-14 rounded-full object-cover"
             />

@@ -82,7 +82,7 @@ const TicTacToeModal = () => {
                 <img
                   src={
                     playerX.profilePicture ||
-                    `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(playerX.name)}`
+                    '/avatars/male.svg'
                   }
                   alt={playerX.name}
                   className="w-11 h-11 rounded-full object-cover bg-purple-950 border-2 border-indigo-500/50"
@@ -121,7 +121,7 @@ const TicTacToeModal = () => {
                 <img
                   src={
                     playerO.profilePicture ||
-                    `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(playerO.name)}`
+                    '/avatars/male.svg'
                   }
                   alt={playerO.name}
                   className="w-11 h-11 rounded-full object-cover bg-purple-950 border-2 border-pink-500/50"

@@ -47,6 +47,12 @@ The application faithfully follows a dark-purple three-panel interface:
 
 ## 🛠️ Technology Stack
 
+### Admin reports
+
+Reports are delivered as Chatbot messages in a separate, read-only "Reports from Chatbot" conversation. Register the administrator account as `admin@gmail.com`, verify that you control that account, and set `REPORT_ADMIN_USER_ID` in the backend environment to that account's MongoDB `_id`. Because registration does not verify email ownership, an email address alone is not sufficient to identify the administrator. Restart the backend after setting the value. Reports return an unavailable error until the configured ID and email match an existing non-bot account. The report inbox is isolated from Gemini conversation prompts; reports are not emailed. Use a persistent MongoDB database if reports must survive a restart.
+
+To find the ID in a trusted MongoDB console, run `db.users.findOne({ email: 'admin@gmail.com' }, { _id: 1 })` against the application's database, then copy the ObjectId value (without the `ObjectId(...)` wrapper) into `REPORT_ADMIN_USER_ID`. If the configured administrator changes, remove or migrate the old report inbox under an appropriate retention policy before enabling delivery to the new account.
+
 - **Frontend**:
   - React 19
   - Vite

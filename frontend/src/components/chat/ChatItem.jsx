@@ -25,7 +25,7 @@ const ChatItem = ({ conversation, isSelected, onClick }) => {
   const isBot = Boolean(contact?.isBot || name === 'Chatbot');
   const avatar =
     contact?.profilePicture ||
-    `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
+    '/avatars/male.svg';
   // Live socket presence check with DB fallback (AI Chatbot is always online)
   const isOnline = isBot ? true : (contact?._id ? isUserOnline(contact._id) : Boolean(contact?.isOnline));
   const lastMessageText = conversation.lastMessage?.text || 'Start a conversation';

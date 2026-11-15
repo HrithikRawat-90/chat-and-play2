@@ -13,6 +13,7 @@ const VoiceMessagePlayer = ({ audioUrl, isSender }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [playbackError, setPlaybackError] = useState(false);
   const audioRef = useRef(null);
 
   const togglePlay = () => {
@@ -20,7 +21,8 @@ const VoiceMessagePlayer = ({ audioUrl, isSender }) => {
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play();
+      setPlaybackError(false);
+      audioRef.current.play().catch(() => setPlaybackError(true));
     }
   };
 
@@ -31,7 +33,7 @@ const VoiceMessagePlayer = ({ audioUrl, isSender }) => {
   };
 
   const handleLoadedMetadata = () => {
-    if (audioRef.current && audioRef.current.duration && !isNaN(audioRef.current.duration)) {
+    if (audioRef.current && Number.isFinite(audioRef.current.duration)) {
       setDuration(audioRef.current.duration);
     }
   };
@@ -42,7 +44,7 @@ const VoiceMessagePlayer = ({ audioUrl, isSender }) => {
   };
 
   const formatSec = (sec) => {
-    if (!sec || isNaN(sec)) return '0:00';
+    if (!sec || !Number.isFinite(sec)) return '0:00';
     const mins = Math.floor(sec / 60);
     const secs = Math.floor(sec % 60);
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
@@ -68,6 +70,7 @@ const VoiceMessagePlayer = ({ audioUrl, isSender }) => {
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleEnded}
+        onError={() => setPlaybackError(true)}
       />
 
       <button
@@ -110,6 +113,7 @@ const VoiceMessagePlayer = ({ audioUrl, isSender }) => {
           <span>{formatSec(currentTime)}</span>
           <span>{formatSec(duration || 0)}</span>
         </div>
+        {playbackError && <span role="alert" className="text-xs">Unable to play this recording.</span>}
       </div>
     </div>
   );
@@ -131,7 +135,7 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
         <div className="w-8 flex-shrink-0">
           {showAvatar ? (
             <img
-              src={senderAvatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(senderName || 'user')}`}
+              src={senderAvatar || '/avatars/male.svg'}
               alt={senderName}
               className="w-8 h-8 rounded-full object-cover bg-zinc-800 border border-white/10"
             />
@@ -175,7 +179,7 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
         {/* Message Text Bubble */}
         {message.text && (
           <div
-            className={`px-4 py-2 text-sm sm:text-[14.5px] leading-relaxed break-words shadow-sm select-text ${
+            className={`px-4 py-2 text-sm sm:text-[14.5px] leading-relaxed whitespace-pre-wrap break-words shadow-sm select-text ${
               isSender
                 ? 'bg-[#007aff] text-white rounded-[18px] rounded-br-[4px]'
                 : 'bg-[#26262a] text-[#f2f2f7] rounded-[18px] rounded-tl-[4px] border border-white/5'

@@ -17,6 +17,7 @@ export const initSocket = (server) => {
       credentials: true,
     },
     pingTimeout: 60000,
+    maxHttpBufferSize: 10 * 1024 * 1024,
   });
 
   // Socket authentication middleware
@@ -36,7 +37,7 @@ export const initSocket = (server) => {
       );
       const user = await User.findById(decoded.id).select('-password');
 
-      if (!user) {
+      if (!user || user.isBot) {
         return next(new Error('Authentication error: User not found'));
       }
 
@@ -208,7 +209,7 @@ export const initSocket = (server) => {
           const botUser = participants.find((p) => p.isBot || p.email === 'chatbot@chatplay.ai');
 
           const isMentioned = text && (text.includes('@Chatbot') || text.includes('@chatbot'));
-          const shouldBotReply = botUser && botUser._id.toString() !== userId && (!conversation.isGroup || isMentioned);
+          const shouldBotReply = !conversation.isModerationInbox && botUser && botUser._id.toString() !== userId && (!conversation.isGroup || isMentioned);
 
           if (shouldBotReply) {
             // 1. Emit typing indicator for bot

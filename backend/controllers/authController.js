@@ -9,10 +9,7 @@ const generateToken = (id) => {
 };
 
 // Helper for default avatar
-const getDefaultAvatar = (name) => {
-  const encodedName = encodeURIComponent(name.trim());
-  return `https://api.dicebear.com/7.x/bottts/svg?seed=${encodedName}`;
-};
+const getDefaultAvatar = () => '/avatars/male.svg';
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -97,7 +94,7 @@ export const login = async (req, res) => {
     }
 
     const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
-    if (!user) {
+    if (!user || user.isBot) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password.',

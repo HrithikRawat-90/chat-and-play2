@@ -24,7 +24,7 @@ export const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'chat_play_jwt_secret_dev_key_2026');
     const user = await User.findById(decoded.id).select('-password');
 
-    if (!user) {
+    if (!user || user.isBot) {
       return res.status(401).json({
         success: false,
         message: 'The user belonging to this token no longer exists.',

@@ -32,6 +32,7 @@ export const ChatProvider = ({ children }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
   const [isJoinGroupOpen, setIsJoinGroupOpen] = useState(false);
+  const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
 
   // Total unread messages across all conversations
   const totalUnreadCount = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
@@ -364,11 +365,12 @@ export const ChatProvider = ({ children }) => {
     }
     if (!conv.participants) return null;
     const currentUserId = (user?._id || user?.id)?.toString();
-    return (
-      conv.participants.find(
+    const participant = conv.participants.find(
         (p) => (p._id || p.id)?.toString() !== currentUserId
-      ) || conv.participants[0]
-    );
+      ) || conv.participants[0];
+    return conv.isModerationInbox && participant
+      ? { ...participant, name: 'Reports from Chatbot' }
+      : participant;
   };
 
   const toggleRightSidebar = () => {
@@ -395,6 +397,7 @@ export const ChatProvider = ({ children }) => {
         isSettingsOpen,
         isCreateGroupOpen,
         isJoinGroupOpen,
+        isOptionsMenuOpen,
         totalUnreadCount,
         currentTypingUsers,
         isSocketConnected: isConnected,
@@ -404,6 +407,7 @@ export const ChatProvider = ({ children }) => {
         setIsSettingsOpen,
         setIsCreateGroupOpen,
         setIsJoinGroupOpen,
+        setIsOptionsMenuOpen,
         toggleRightSidebar,
         selectConversation,
         startConversationWithUser,

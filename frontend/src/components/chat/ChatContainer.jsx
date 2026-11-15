@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useChat } from '../../context/ChatContext';
 import { useGame } from '../../games/GameContext';
 import LeftSidebar from './LeftSidebar';
@@ -15,8 +15,44 @@ import TicTacToeModal from '../../games/TicTacToeModal';
 import GameInviteBanner from '../../games/GameInviteBanner';
 
 const ChatContainer = () => {
-  const { activeConversation, mobileView } = useChat();
-  const { sendInvite } = useGame();
+  const chat = useChat();
+  const { activeConversation, mobileView } = chat;
+  const { sendInvite, activeGame, exitGame } = useGame();
+  const backAction = useRef(() => {});
+
+  backAction.current = () => {
+    if (activeGame) exitGame(activeGame.gameId);
+    else if (chat.isSettingsOpen) chat.setIsSettingsOpen(false);
+    else if (chat.isCreateGroupOpen) chat.setIsCreateGroupOpen(false);
+    else if (chat.isJoinGroupOpen) chat.setIsJoinGroupOpen(false);
+    else if (chat.isSearchModalOpen) chat.setIsSearchModalOpen(false);
+    else if (chat.isOptionsMenuOpen) chat.setIsOptionsMenuOpen(false);
+    else if (chat.isRightSidebarOpen && mobileView === 'chat') chat.toggleRightSidebar();
+    else if (mobileView === 'chat') chat.setMobileView('list');
+    else if (chat.activeTab !== 'chat') chat.setActiveTab('chat');
+  };
+
+  // Keep one same-URL history entry available for the device Back button.
+  useEffect(() => {
+    const isMobile = () => window.matchMedia('(max-width: 767px)').matches;
+    const addBackEntry = () => {
+      if (isMobile() && !window.history.state?.chatPlayBack) {
+        window.history.pushState({ ...window.history.state, chatPlayBack: true }, '', window.location.href);
+      }
+    };
+    const handleBack = () => {
+      if (!isMobile()) return;
+      backAction.current();
+      addBackEntry();
+    };
+    addBackEntry();
+    window.addEventListener('popstate', handleBack);
+    window.addEventListener('resize', addBackEntry);
+    return () => {
+      window.removeEventListener('popstate', handleBack);
+      window.removeEventListener('resize', addBackEntry);
+    };
+  }, []);
 
   // Prevent mobile keyboard from scrolling the window / displacing the header
   useEffect(() => {
@@ -59,7 +95,9 @@ const ChatContainer = () => {
             <ChatHeader onPlayTogetherClick={handlePlayTogether} />
             <GameInviteBanner />
             <MessageFeed />
-            <MessageInput />
+            {activeConversation.isModerationInbox ? (
+              <div className="px-4 py-3 text-center text-xs text-zinc-400 bg-[#121214]">Reports are delivered here by Chatbot.</div>
+            ) : <MessageInput />}
           </>
         ) : (
           <EmptyChatState />

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
 import {
@@ -18,8 +18,9 @@ const SidebarHeader = () => {
     setIsSettingsOpen,
     setIsCreateGroupOpen,
     setIsJoinGroupOpen,
+    isOptionsMenuOpen: menuOpen,
+    setIsOptionsMenuOpen: setMenuOpen,
   } = useChat();
-  const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -44,9 +45,7 @@ const SidebarHeader = () => {
           <img
             src={
               user?.profilePicture ||
-              `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(
-                user?.name || 'User'
-              )}`
+              '/avatars/male.svg'
             }
             alt={user?.name}
             className="w-10 h-10 rounded-full object-cover bg-purple-950 border border-purple-800/40 group-hover:border-purple-500/70 transition-all group-hover:scale-105"
@@ -84,7 +83,7 @@ const SidebarHeader = () => {
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-[#181233] border border-purple-900/40 rounded-2xl shadow-2xl shadow-purple-950/80 py-1.5 z-50 animate-fadeIn divide-y divide-purple-900/30">
+            <div className="options-menu absolute right-0 mt-2 w-52 bg-[#181233] border border-purple-900/40 rounded-2xl shadow-2xl shadow-purple-950/80 py-1.5 z-50 animate-fadeIn divide-y divide-purple-900/30">
               <div
                 onClick={() => {
                   setMenuOpen(false);

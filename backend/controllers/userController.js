@@ -1,4 +1,8 @@
 import User from '../models/User.js';
+import Conversation from '../models/Conversation.js';
+import Message from '../models/Message.js';
+import mongoose from 'mongoose';
+import { CHATBOT_EMAIL } from '../services/geminiService.js';
 
 // @desc    Get / Search all users except currently authenticated user
 // @route   GET /api/users?search=keyword
@@ -185,11 +189,15 @@ export const reportUser = async (req, res) => {
   try {
     const { reportedUserId, reason, details } = req.body;
 
-    if (!reportedUserId || !reason) {
+    if (!mongoose.isValidObjectId(reportedUserId) || typeof reason !== 'string' || !reason.trim() || reason.length > 200 || (details != null && (typeof details !== 'string' || details.length > 2000))) {
       return res.status(400).json({
         success: false,
-        message: 'Reported user ID and reason are required.',
+        message: 'Provide a valid user, a reason of up to 200 characters, and details of up to 2000 characters.',
       });
+    }
+
+    if (reportedUserId.toString() === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'You cannot report yourself.' });
     }
 
     const reportedUser = await User.findById(reportedUserId);
@@ -200,13 +208,45 @@ export const reportUser = async (req, res) => {
       });
     }
 
-    console.log(
-      `[Report] User ${req.user.name} reported ${reportedUser.name} for "${reason}". Details: ${details || 'None'}`
+    const adminId = process.env.REPORT_ADMIN_USER_ID;
+    if (!adminId || !mongoose.isValidObjectId(adminId)) {
+      return res.status(503).json({ success: false, message: 'Reports are currently unavailable. Please try again later.' });
+    }
+    const [admin, bot] = await Promise.all([
+      User.findOne({ _id: adminId, email: 'admin@gmail.com', isBot: { $ne: true } }),
+      User.findOne({ email: CHATBOT_EMAIL, isBot: true }),
+    ]);
+    if (!admin || !bot || admin._id.equals(bot._id)) {
+      return res.status(503).json({ success: false, message: 'Reports are currently unavailable. Please try again later.' });
+    }
+
+    // The isolated inbox prevents report contents being included in Gemini prompts.
+    const conversation = await Conversation.findOneAndUpdate(
+      { isModerationInbox: true },
+      { $setOnInsert: { isModerationInbox: true, isGroup: false, participants: [admin._id, bot._id] } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
     );
+    const inboxParticipants = conversation.participants.map((id) => id.toString());
+    if (inboxParticipants.length !== 2 || !inboxParticipants.includes(admin._id.toString()) || !inboxParticipants.includes(bot._id.toString())) {
+      return res.status(503).json({ success: false, message: 'Reports are currently unavailable. Please contact the administrator.' });
+    }
+    const text = `New user report\nReported by: ${req.user.name} (ID: ${req.user._id})\nReported user: ${reportedUser.name} (ID: ${reportedUser._id})\nReason: ${reason.trim()}\nDetails: ${details?.trim() || 'None provided'}`;
+    const message = await Message.create({ conversationId: conversation._id, senderId: bot._id, text });
+    conversation.lastMessage = { text: 'New user report', sender: bot._id, createdAt: message.createdAt };
+    await conversation.save();
+    const populatedMessage = await Message.findById(message._id).populate('senderId', 'name profilePicture bio isOnline isBot');
+    if (req.io) {
+      req.io.to(`user:${admin._id}`).emit('message:receive', populatedMessage);
+      req.io.to(`user:${admin._id}`).emit('conversation:updated', {
+        conversationId: conversation._id,
+        lastMessage: conversation.lastMessage,
+        updatedAt: conversation.updatedAt,
+      });
+    }
 
     return res.status(200).json({
       success: true,
-      message: `Report submitted successfully regarding ${reportedUser.name}. Our moderation team has received it.`,
+      message: 'Report sent to the admin through Chatbot.',
     });
   } catch (error) {
     console.error('Error reporting user:', error);

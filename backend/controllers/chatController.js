@@ -65,6 +65,7 @@ export const createConversation = async (req, res) => {
     // Check if 1-on-1 personal conversation already exists between these 2 users (exclude groups!)
     let conversation = await Conversation.findOne({
       isGroup: { $ne: true },
+      isModerationInbox: { $ne: true },
       participants: { $all: [currentUserId, recipientId], $size: 2 },
     }).populate('participants', 'name profilePicture bio isOnline lastSeen isBot');
 

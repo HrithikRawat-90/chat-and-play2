@@ -12,27 +12,6 @@ export const THEMES = [
     description: 'Clean dark mode with OLED black and blue accents',
   },
   {
-    id: 'purple',
-    name: 'Cyberpunk Violet',
-    previewColor: '#7c3aed',
-    accent: 'purple',
-    description: 'Original neon purple & dark cyber vibe',
-  },
-  {
-    id: 'midnight',
-    name: 'Midnight OLED',
-    previewColor: '#3b82f6',
-    accent: 'blue',
-    description: 'Deep pitch black with electric blue glow',
-  },
-  {
-    id: 'emerald',
-    name: 'Matrix Emerald',
-    previewColor: '#10b981',
-    accent: 'emerald',
-    description: 'Dark forest with luminous matrix green',
-  },
-  {
     id: 'sunset',
     name: 'Sunset Ruby',
     previewColor: '#f43f5e',
@@ -40,11 +19,11 @@ export const THEMES = [
     description: 'Vibrant crimson with warm neon accents',
   },
   {
-    id: 'ocean',
-    name: 'Deep Abyss',
-    previewColor: '#06b6d4',
-    accent: 'cyan',
-    description: 'Underwater deep navy with electric cyan',
+    id: 'light',
+    name: 'Light Theme',
+    previewColor: '#e5e7eb',
+    accent: 'blue',
+    description: 'Bright surfaces with clear, comfortable contrast',
   },
 ];
 

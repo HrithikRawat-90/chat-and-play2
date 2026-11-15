@@ -4,12 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, User, Gamepad2, ArrowRight, AlertCircle, Loader2, Upload } from 'lucide-react';
 
 const PRESET_AVATARS = [
-  'https://api.dicebear.com/7.x/bottts/svg?seed=Luna',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=Shadow',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=Cosmo',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=Nova',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=Phoenix',
-  'https://api.dicebear.com/7.x/bottts/svg?seed=Cyber',
+  { label: 'Male avatar', url: '/avatars/male.svg' },
+  { label: 'Female avatar', url: '/avatars/female.svg' },
 ];
 
 const Register = () => {
@@ -22,7 +18,7 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     bio: 'Hey there! Ready to chat and play!',
-    profilePicture: PRESET_AVATARS[0],
+    profilePicture: PRESET_AVATARS[0].url,
   });
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState('');
@@ -152,10 +148,11 @@ const Register = () => {
                 Choose an Avatar
               </label>
               <div className="flex items-center justify-between gap-2 p-2.5 bg-[#0b0818] border border-purple-900/40 rounded-xl overflow-x-auto">
-                {PRESET_AVATARS.map((url, index) => (
+                {PRESET_AVATARS.map(({ url, label }) => (
                   <button
-                    key={index}
+                    key={url}
                     type="button"
+                    aria-label={label}
                     onClick={() => handleSelectAvatar(url)}
                     className={`relative p-1 rounded-full transition-transform hover:scale-105 flex-shrink-0 ${
                       formData.profilePicture === url
@@ -165,7 +162,7 @@ const Register = () => {
                   >
                     <img
                       src={url}
-                      alt={`Avatar ${index + 1}`}
+                      alt={label}
                       className="w-10 h-10 rounded-full object-cover bg-purple-950/50"
                     />
                   </button>
@@ -193,7 +190,7 @@ const Register = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="e.g. Shyamlaal Shukla"
+                  placeholder="e.g. Rampal"
                   required
                   className="w-full pl-10 pr-4 py-2.5 bg-[#0b0818] border border-purple-900/40 rounded-xl text-white placeholder-purple-300/30 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/40 transition-all"
                 />
@@ -211,7 +208,7 @@ const Register = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="name@example.com"
+                  placeholder="rampal@example.com"
                   required
                   className="w-full pl-10 pr-4 py-2.5 bg-[#0b0818] border border-purple-900/40 rounded-xl text-white placeholder-purple-300/30 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/40 transition-all"
                 />
