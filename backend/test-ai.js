@@ -67,7 +67,7 @@ async function runAiTests() {
     console.log('[Test 4] Testing GET /api/ai/status...');
     const statusRes = await makeRequest('/api/ai/status', 'GET', null, token);
     console.assert(statusRes.status === 200, 'Status check failed');
-    console.assert(statusRes.body.activeModel === 'gemini-3.8-flash', 'Active model should be gemini-3.8-flash');
+    console.assert(statusRes.body.activeModel === 'gemini-3.5-flash-lite', 'Preferred model should be gemini-3.5-flash-lite');
     console.assert(Array.isArray(statusRes.body.models), 'Models list must be an array');
     console.log('✓ AI Status verified. Fallback models:', statusRes.body.models.join(' -> '));
 

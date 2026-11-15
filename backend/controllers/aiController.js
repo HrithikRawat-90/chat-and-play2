@@ -51,7 +51,7 @@ export const getAiStatus = async (req, res) => {
       success: true,
       isConfigured: isGeminiKeyConfigured(),
       models: GEMINI_FALLBACK_MODELS,
-      activeModel: 'gemini-3.8-flash',
+      activeModel: GEMINI_FALLBACK_MODELS[0],
     });
   } catch (error) {
     return res.status(500).json({

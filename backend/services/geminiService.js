@@ -1,15 +1,11 @@
 import { GoogleGenAI } from '@google/genai';
 import User from '../models/User.js';
 
-// Fallback chain of modern Gemini models
-// Primary: modern gemini-3.8-flash -> gemini-3.5-flash-lite -> gemini-3.1-flash-lite -> legacy fallbacks
+// Try the preferred faster model first, followed by the requested alternatives.
 export const GEMINI_FALLBACK_MODELS = [
-  'gemini-3.8-flash',
   'gemini-3.5-flash-lite',
-  'gemini-3.1-flash-lite',
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
+  'gemini-3.5-flash',
+  'gemini-3.8-flash',
 ];
 
 export const CHATBOT_EMAIL = 'chatbot@chatplay.ai';
@@ -90,7 +86,7 @@ export const generateGeminiText = async ({ prompt, contents, systemInstruction }
       });
 
       const text = response.text || (response.candidates?.[0]?.content?.parts?.[0]?.text ?? '');
-      if (text) {
+      if (text && text.trim()) {
         return {
           success: true,
           text: text.trim(),
