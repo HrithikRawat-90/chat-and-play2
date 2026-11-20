@@ -29,7 +29,7 @@
   }
 }
 
-/* Custom Apple sleek scrollbars */
+/* Scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -48,9 +48,7 @@
   background: rgba(255, 255, 255, 0.35);
 }
 
-/* ========================================================
-   APPLE DARK THEME (Default / iOS Mode)
-   ======================================================== */
+/* Default dark theme */
 html[data-theme="apple-dark"],
 html:not([data-theme]),
 html[data-theme=""] {
@@ -64,7 +62,7 @@ html[data-theme=""] body {
   color: #f2f2f7 !important;
 }
 
-/* OLED Pure Black Backgrounds */
+/* Dark backgrounds */
 html[data-theme="apple-dark"] .bg-\[\#090614\],
 html[data-theme="apple-dark"] .bg-\[\#0b0816\],
 html[data-theme="apple-dark"] .bg-\[\#0d091d\],
@@ -74,7 +72,7 @@ html:not([data-theme]) .bg-\[\#0d091d\] {
   background-color: #000000 !important;
 }
 
-/* Elevated Apple Dark Surfaces (Cards & Sidebars) */
+/* Cards and sidebars */
 html[data-theme="apple-dark"] .bg-\[\#130f24\],
 html[data-theme="apple-dark"] .bg-\[\#140e2b\],
 html[data-theme="apple-dark"] .bg-\[\#100b21\],
@@ -114,13 +112,13 @@ html:not([data-theme]) .bg-\[\#0b0818\] {
   background-color: #1c1c1e !important;
 }
 
-/* Received Message Bubble Dark Gray */
+/* Received messages */
 html[data-theme="apple-dark"] .bg-\[\#221c3b\],
 html:not([data-theme]) .bg-\[\#221c3b\] {
   background-color: #26262a !important;
 }
 
-/* Hairline Apple Borders */
+/* Borders */
 html[data-theme="apple-dark"] .border-purple-900\/30,
 html[data-theme="apple-dark"] .border-purple-900\/40,
 html[data-theme="apple-dark"] .border-purple-900\/50,
@@ -134,7 +132,7 @@ html:not([data-theme]) .border-purple-800\/40 {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Apple System Blue Accents & Buttons */
+/* Blue accents */
 html[data-theme="apple-dark"] .bg-purple-600,
 html[data-theme="apple-dark"] .bg-purple-700,
 html:not([data-theme]) .bg-purple-600,
@@ -185,9 +183,6 @@ html:not([data-theme]) .shadow-purple-950\/80 {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
 }
 
-/* ========================================================
-   OTHER THEMES (Cyberpunk Violet, Emerald, Midnight, etc.)
-   ======================================================== */
 /* Complete the neutral dark palette for older purple components. */
 html[data-theme="apple-dark"] {
   color-scheme: dark;

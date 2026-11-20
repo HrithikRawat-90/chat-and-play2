@@ -43,7 +43,6 @@ const JoinGroupModal = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn select-none">
       <div className="w-full max-w-sm bg-[#140e2b] border border-purple-900/50 rounded-2xl shadow-2xl overflow-hidden">
-        {/* Header */}
         <div className="h-14 px-5 border-b border-purple-900/40 flex items-center justify-between bg-[#191136]">
           <div className="flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-purple-400" />
@@ -57,7 +56,6 @@ const JoinGroupModal = () => {
           </button>
         </div>
 
-        {/* Content */}
         <form onSubmit={handleJoin} className="p-5 space-y-4">
           <p className="text-xs text-purple-300/70 leading-relaxed">
             Enter the unique 6-character Group Code shared by your friend or group admin:

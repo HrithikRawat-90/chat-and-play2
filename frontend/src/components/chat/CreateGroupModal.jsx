@@ -92,7 +92,6 @@ const CreateGroupModal = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn select-none">
       <div className="w-full max-w-md bg-[#140e2b] border border-purple-900/50 rounded-2xl shadow-2xl overflow-hidden">
-        {/* Header */}
         <div className="h-14 px-5 border-b border-purple-900/40 flex items-center justify-between bg-[#191136]">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-purple-400" />
@@ -106,7 +105,6 @@ const CreateGroupModal = () => {
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-5">
           {createdGroup ? (
             /* Success View with Join Code */
@@ -124,7 +122,6 @@ const CreateGroupModal = () => {
                 </p>
               </div>
 
-              {/* Group Code Display Box */}
               <div className="p-4 rounded-2xl bg-[#0b0717] border border-purple-800/50 flex items-center justify-between gap-3 max-w-xs mx-auto shadow-inner">
                 <div>
                   <span className="text-[10px] text-purple-400 uppercase font-bold tracking-wider block">
@@ -170,7 +167,6 @@ const CreateGroupModal = () => {
                 </div>
               )}
 
-              {/* Group Avatar & Upload */}
               <div>
                 <label className="block text-xs font-semibold text-purple-200 mb-2">
                   Group Profile Picture
@@ -222,7 +218,6 @@ const CreateGroupModal = () => {
                 </div>
               </div>
 
-              {/* Group Name */}
               <div>
                 <label className="block text-xs font-semibold text-purple-200 mb-1.5">
                   Group Name *
@@ -238,7 +233,6 @@ const CreateGroupModal = () => {
                 />
               </div>
 
-              {/* Group Description */}
               <div>
                 <label className="block text-xs font-semibold text-purple-200 mb-1.5">
                   Description (Optional)
@@ -253,7 +247,6 @@ const CreateGroupModal = () => {
                 />
               </div>
 
-              {/* Footer info */}
               <div className="p-3 rounded-xl bg-purple-950/30 border border-purple-800/30 text-[11px] text-purple-300/70 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0" />
                 <span>
@@ -261,7 +254,6 @@ const CreateGroupModal = () => {
                 </span>
               </div>
 
-              {/* Actions */}
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-purple-900/30">
                 <button
                   type="button"

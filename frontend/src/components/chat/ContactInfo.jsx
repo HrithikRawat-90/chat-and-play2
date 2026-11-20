@@ -40,7 +40,6 @@ const ContactInfo = () => {
   const [isBlocked, setIsBlocked] = useState(false);
   const [loadingBlock, setLoadingBlock] = useState(false);
 
-  // Modals state
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState(REPORT_REASONS[0]);
   const [reportDetails, setReportDetails] = useState('');
@@ -50,7 +49,6 @@ const ContactInfo = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeletingChat, setIsDeletingChat] = useState(false);
 
-  // Toast feedback
   const [toastMessage, setToastMessage] = useState('');
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -60,7 +58,6 @@ const ContactInfo = () => {
   const contact = getOtherParticipant(activeConversation);
   const contactId = (contact?._id || contact?.id)?.toString();
 
-  // Check initial block status whenever contact changes
   useEffect(() => {
     if (!contactId) return;
     let isMounted = true;
@@ -98,12 +95,10 @@ const ContactInfo = () => {
   const isOnline = isBot ? true : (contactId ? isUserOnline(contactId) : Boolean(contact?.isOnline));
   const groupCode = activeConversation?.groupCode;
 
-  // Extract real shared images from current conversation messages
   const sharedMedia = (messages || [])
     .filter((m) => m.imageUrl && m.imageUrl.trim() !== '')
     .map((m) => m.imageUrl);
 
-  // Handle Block / Unblock Toggle
   const handleToggleBlock = async () => {
     if (!contactId || loadingBlock) return;
     setLoadingBlock(true);
@@ -124,7 +119,6 @@ const ContactInfo = () => {
     }
   };
 
-  // Handle Report Submission
   const handleSubmitReport = async (e) => {
     e.preventDefault();
     if (!contactId || isSubmittingReport) return;
@@ -149,7 +143,6 @@ const ContactInfo = () => {
     }
   };
 
-  // Handle Chat Deletion
   const handleConfirmDelete = async () => {
     if (isDeletingChat) return;
     setIsDeletingChat(true);
@@ -170,14 +163,12 @@ const ContactInfo = () => {
 
   return (
     <>
-      {/* Mobile backdrop overlay to close bio */}
       <div
         onClick={toggleRightSidebar}
         className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden cursor-pointer"
         aria-hidden="true"
       />
       <aside className="fixed inset-y-0 right-0 z-50 w-full sm:w-80 lg:static lg:w-[320px] lg:h-full bg-[#130f24] border-l border-purple-900/30 flex flex-col flex-shrink-0 animate-fadeIn select-none overflow-y-auto shadow-2xl lg:shadow-none">
-        {/* Toast Feedback */}
       {toastMessage && (
         <div className="absolute top-3 left-3 right-3 z-50 p-2.5 rounded-xl bg-purple-900/95 border border-purple-400 text-white text-xs text-center shadow-lg animate-fadeIn flex items-center justify-center gap-2">
           <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
@@ -185,7 +176,6 @@ const ContactInfo = () => {
         </div>
       )}
 
-      {/* Header */}
       <div className="h-16 px-5 flex items-center justify-between border-b border-purple-900/30">
         <h3 className="font-semibold text-white text-base">
           {isGroup ? 'Group Details' : 'Contact Info'}
@@ -200,7 +190,6 @@ const ContactInfo = () => {
       </div>
 
       <div className="p-5 flex flex-col items-center border-b border-purple-900/30 text-center">
-        {/* Large Profile Photo */}
         <div className="relative mb-3.5">
           <img
             src={avatar}
@@ -228,7 +217,6 @@ const ContactInfo = () => {
         </span>
       </div>
 
-      {/* If group, show Group Join Code box */}
       {isGroup && groupCode && (
         <div className="p-4 border-b border-purple-900/30 bg-[#0e0a1f]">
           <div className="p-3 rounded-xl bg-purple-950/40 border border-purple-800/40 flex items-center justify-between gap-2">
@@ -254,7 +242,6 @@ const ContactInfo = () => {
         </div>
       )}
 
-      {/* Group Members Section */}
       {isGroup && (
         <div className="p-4 border-b border-purple-900/30">
           <div className="flex items-center justify-between mb-2.5">
@@ -297,7 +284,6 @@ const ContactInfo = () => {
         </div>
       )}
 
-      {/* Media, Links and Files: ONLY rendered if actual media has been shared in this chat */}
       {sharedMedia.length > 0 && (
         <div className="p-4 border-b border-purple-900/30">
           <div className="flex items-center justify-between mb-3 text-xs font-semibold text-purple-200/80">
@@ -329,7 +315,6 @@ const ContactInfo = () => {
         </div>
       )}
 
-      {/* Notifications */}
       <div className="p-4 border-b border-purple-900/30">
         <div className="flex items-center justify-between text-xs cursor-pointer group">
           <div className="flex items-center gap-2.5">
@@ -343,9 +328,7 @@ const ContactInfo = () => {
         </div>
       </div>
 
-      {/* Action Options */}
       <div className="p-3 space-y-1 mt-auto">
-        {/* 1. Block / Unblock Contact Button */}
         <button
           onClick={handleToggleBlock}
           disabled={loadingBlock}
@@ -365,7 +348,6 @@ const ContactInfo = () => {
           <span>{isBlocked ? `Unblock ${firstName}` : `Block ${firstName}`}</span>
         </button>
 
-        {/* 2. Report Contact Button */}
         <button
           onClick={() => setShowReportModal(true)}
           className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium text-purple-300 hover:text-white hover:bg-purple-950/40 rounded-xl transition-colors text-left cursor-pointer"
@@ -374,7 +356,6 @@ const ContactInfo = () => {
           <span>Report Contact</span>
         </button>
 
-        {/* 3. Delete Chat Button */}
         <button
           onClick={() => setShowDeleteModal(true)}
           className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-950/30 rounded-xl transition-colors text-left cursor-pointer"
@@ -384,7 +365,6 @@ const ContactInfo = () => {
         </button>
       </div>
 
-      {/* Modal: Report Contact */}
       {showReportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-sm bg-[#16102e] border border-purple-800/50 rounded-2xl p-5 shadow-2xl">
@@ -462,7 +442,6 @@ const ContactInfo = () => {
         </div>
       )}
 
-      {/* Modal: Confirm Delete Chat */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-sm bg-[#16102e] border border-red-900/40 rounded-2xl p-5 shadow-2xl">

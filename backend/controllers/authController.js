@@ -1,19 +1,14 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-// Helper to generate JWT token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'chat_play_jwt_secret_dev_key_2026', {
     expiresIn: process.env.JWT_EXPIRE || '30d',
   });
 };
 
-// Helper for default avatar
 const getDefaultAvatar = () => '/avatars/male.svg';
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
 export const register = async (req, res) => {
   try {
     const { name, email, password, profilePicture, bio } = req.body;
@@ -79,9 +74,6 @@ export const register = async (req, res) => {
   }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -138,9 +130,6 @@ export const login = async (req, res) => {
   }
 };
 
-// @desc    Get current authenticated user
-// @route   GET /api/auth/me
-// @access  Private
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -157,9 +146,6 @@ export const getMe = async (req, res) => {
   }
 };
 
-// @desc    Logout user
-// @route   POST /api/auth/logout
-// @access  Private
 export const logout = async (req, res) => {
   try {
     if (req.user) {

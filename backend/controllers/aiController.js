@@ -7,9 +7,6 @@ import {
   GEMINI_FALLBACK_MODELS,
 } from '../services/geminiService.js';
 
-// @desc    Get AI message suggestions or polish draft
-// @route   POST /api/ai/suggest
-// @access  Private
 export const getMessageSuggestion = async (req, res) => {
   try {
     const { conversationId, draft = '', context = [] } = req.body;
@@ -53,9 +50,6 @@ export const getMessageSuggestion = async (req, res) => {
   }
 };
 
-// @desc    Get AI service status
-// @route   GET /api/ai/status
-// @access  Private
 export const getAiStatus = async (req, res) => {
   try {
     return res.status(200).json({

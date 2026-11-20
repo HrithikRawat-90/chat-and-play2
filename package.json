@@ -27,8 +27,5 @@
     "mongodb"
   ],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@google/genai": "^3.0.0"
-  }
+  "license": "ISC"
 }

@@ -1,12 +1,10 @@
 import { createGameState, makeMove, restartGame } from './ticTacToe.js';
 
-// In-memory stores
 const activeGames = new Map(); // gameId -> game
 const conversationGames = new Map(); // conversationId -> gameId
 const pendingInvites = new Map(); // conversationId -> { sender, recipient, timestamp }
 
 export const gameManager = {
-  // Store an outgoing invite
   createInvite(conversationId, sender, recipient) {
     const invite = {
       conversationId,
@@ -34,7 +32,6 @@ export const gameManager = {
     pendingInvites.delete(conversationId);
   },
 
-  // Start new Tic-Tac-Toe match
   startNewGame(conversationId, playerX, playerO) {
     const gameId = `ttt_${conversationId}_${Date.now()}`;
     const newGame = createGameState(gameId, conversationId, playerX, playerO);
@@ -56,7 +53,6 @@ export const gameManager = {
     return activeGames.get(gameId) || null;
   },
 
-  // Make move
   playMove(gameId, playerId, cellIndex) {
     const game = activeGames.get(gameId);
     if (!game) {
@@ -65,14 +61,12 @@ export const gameManager = {
     return makeMove(game, playerId, cellIndex);
   },
 
-  // Restart match for rematch
   rematch(gameId) {
     const game = activeGames.get(gameId);
     if (!game) return null;
     return restartGame(game);
   },
 
-  // End match session
   endGame(gameId) {
     const game = activeGames.get(gameId);
     if (game) {
@@ -83,7 +77,6 @@ export const gameManager = {
     return null;
   },
 
-  // Cleanup on conversation
   endGameByConversation(conversationId) {
     const gameId = conversationGames.get(conversationId);
     if (gameId) {

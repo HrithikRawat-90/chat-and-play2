@@ -8,7 +8,6 @@ const formatMessageTime = (dateInput) => {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
-// Apple-style Voice Memo Player
 const VoiceMessagePlayer = ({ audioUrl, isSender }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -91,7 +90,6 @@ const VoiceMessagePlayer = ({ audioUrl, isSender }) => {
       </button>
 
       <div className="flex-1 flex flex-col justify-center gap-1.5 min-w-0">
-        {/* Apple style waveform visualization */}
         <div className="flex items-center gap-[3px] h-4">
           {waveformHeights.map((h, i) => {
             const barProgress = (i / waveformHeights.length) * 100;
@@ -130,7 +128,6 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
         isSender ? 'justify-end' : 'justify-start'
       }`}
     >
-      {/* Received message avatar */}
       {!isSender && (
         <div className="w-8 flex-shrink-0">
           {showAvatar ? (
@@ -145,9 +142,7 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
         </div>
       )}
 
-      {/* Bubble Container */}
       <div className={`max-w-[85%] sm:max-w-[70%] flex flex-col ${isSender ? 'items-end' : 'items-start'}`}>
-        {/* Optional Image Attachment */}
         {message.imageUrl && (
           <div className="mb-1.5 overflow-hidden rounded-[18px] border border-white/10 shadow-lg max-w-sm sm:max-w-md">
             <img
@@ -159,14 +154,12 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
           </div>
         )}
 
-        {/* Optional Voice Message Player */}
         {message.audioUrl && (
           <div className="mb-1">
             <VoiceMessagePlayer audioUrl={message.audioUrl} isSender={isSender} />
           </div>
         )}
 
-        {/* Optional Reply Quote */}
         {message.replyTo && message.replyTo.text && (
           <div className="mb-1 p-2.5 rounded-xl bg-zinc-800/80 border-l-4 border-[#007aff] text-xs text-zinc-300 max-w-full">
             <span className="font-semibold text-white block mb-0.5">
@@ -176,7 +169,6 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
           </div>
         )}
 
-        {/* Message Text Bubble */}
         {message.text && (
           <div
             className={`px-4 py-2 text-sm sm:text-[14.5px] leading-relaxed whitespace-pre-wrap break-words shadow-sm select-text ${
@@ -189,7 +181,6 @@ const MessageItem = ({ message, senderAvatar, senderName, showAvatar }) => {
           </div>
         )}
 
-        {/* Timestamp */}
         <span className="text-[10px] text-zinc-500 mt-1 px-1 select-none font-medium">
           {time}
         </span>

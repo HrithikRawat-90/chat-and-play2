@@ -3,9 +3,6 @@ import Message from '../models/Message.js';
 import User from '../models/User.js';
 import { gameManager } from '../games/gameManager.js';
 
-// @desc    Get user conversations
-// @route   GET /api/conversations
-// @access  Private
 export const getConversations = async (req, res) => {
   try {
     const currentUserId = req.user._id;
@@ -32,9 +29,6 @@ export const getConversations = async (req, res) => {
   }
 };
 
-// @desc    Find or create 1-on-1 conversation
-// @route   POST /api/conversations
-// @access  Private
 export const createConversation = async (req, res) => {
   try {
     const currentUserId = req.user._id;
@@ -62,7 +56,7 @@ export const createConversation = async (req, res) => {
       });
     }
 
-    // Check if 1-on-1 personal conversation already exists between these 2 users (exclude groups!)
+    // Reuse an existing private conversation, excluding groups.
     let conversation = await Conversation.findOne({
       isGroup: { $ne: true },
       isModerationInbox: { $ne: true },
@@ -99,7 +93,7 @@ export const createConversation = async (req, res) => {
   }
 };
 
-// Helper to generate unique 6-character group join code (e.g. GRP-9X4K2M)
+// Generate a six-character group code (for example, GRP-9X4K2M).
 const generateGroupCode = () => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
@@ -109,9 +103,6 @@ const generateGroupCode = () => {
   return `GRP-${code}`;
 };
 
-// @desc    Create new group conversation with join code
-// @route   POST /api/conversations/group
-// @access  Private
 export const createGroup = async (req, res) => {
   try {
     const currentUserId = req.user._id;
@@ -124,7 +115,6 @@ export const createGroup = async (req, res) => {
       });
     }
 
-    // Generate unique group code
     let groupCode = generateGroupCode();
     let existing = await Conversation.findOne({ groupCode });
     while (existing) {
@@ -170,9 +160,6 @@ export const createGroup = async (req, res) => {
   }
 };
 
-// @desc    Join existing group using Group Code
-// @route   POST /api/conversations/join-group
-// @access  Private
 export const joinGroupByCode = async (req, res) => {
   try {
     const currentUserId = req.user._id;
@@ -198,7 +185,6 @@ export const joinGroupByCode = async (req, res) => {
       });
     }
 
-    // Check if user is already a member
     const alreadyMember = group.participants.some(
       (p) => p.toString() === currentUserId.toString()
     );
@@ -228,15 +214,11 @@ export const joinGroupByCode = async (req, res) => {
   }
 };
 
-// @desc    Get messages for a conversation
-// @route   GET /api/messages/:conversationId
-// @access  Private
 export const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
     const currentUserId = req.user._id;
 
-    // Verify conversation existence and membership
     const conversation = await Conversation.findById(conversationId);
     if (!conversation) {
       return res.status(404).json({
@@ -273,9 +255,6 @@ export const getMessages = async (req, res) => {
   }
 };
 
-// @desc    Send a message via REST
-// @route   POST /api/messages
-// @access  Private
 export const sendMessage = async (req, res) => {
   try {
     const currentUserId = req.user._id;
@@ -295,7 +274,6 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    // Verify membership
     const conversation = await Conversation.findById(conversationId);
     if (!conversation) {
       return res.status(404).json({
@@ -323,7 +301,6 @@ export const sendMessage = async (req, res) => {
       replyTo: replyTo || { text: '', senderName: '' },
     });
 
-    // Update conversation lastMessage & timestamp
     conversation.lastMessage = {
       text: text ? text.trim() : (audioUrl ? '🎤 Voice message' : (imageUrl ? '📷 Shared an image' : '')),
       sender: currentUserId,
@@ -349,9 +326,6 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-// @desc    Delete a conversation and all its messages
-// @route   DELETE /api/conversations/:id
-// @access  Private
 export const deleteConversation = async (req, res) => {
   try {
     const { id } = req.params;
@@ -375,14 +349,11 @@ export const deleteConversation = async (req, res) => {
       });
     }
 
-    // 1. Delete all messages for this conversation
     await Message.deleteMany({ conversationId: id });
 
-    // 2. End any running game session
     gameManager.endGameByConversation(id);
     gameManager.clearInvite(id);
 
-    // 3. Delete the conversation document
     await Conversation.findByIdAndDelete(id);
 
     return res.status(200).json({

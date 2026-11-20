@@ -35,7 +35,6 @@ const SidebarHeader = () => {
 
   return (
     <div className="h-16 px-4 flex items-center justify-between border-b border-purple-900/30 bg-[#130f24]">
-      {/* Current User Info - Clickable to open Profile & Settings */}
       <div
         onClick={() => setIsSettingsOpen(true)}
         className="flex items-center gap-3 cursor-pointer group select-none"
@@ -62,7 +61,6 @@ const SidebarHeader = () => {
         </div>
       </div>
 
-      {/* Top Action Icons (+, ...) */}
       <div className="flex items-center gap-1">
         <button
           onClick={() => setIsSearchModalOpen(true)}
@@ -72,7 +70,6 @@ const SidebarHeader = () => {
           <Plus className="w-5 h-5" />
         </button>
 
-        {/* More options menu */}
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen((prev) => !prev)}

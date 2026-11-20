@@ -4,9 +4,6 @@ import Message from '../models/Message.js';
 import mongoose from 'mongoose';
 import { CHATBOT_EMAIL } from '../services/geminiService.js';
 
-// @desc    Get / Search all users except currently authenticated user
-// @route   GET /api/users?search=keyword
-// @access  Private
 export const getUsers = async (req, res) => {
   try {
     const search = req.query.search || '';
@@ -40,9 +37,6 @@ export const getUsers = async (req, res) => {
   }
 };
 
-// @desc    Get user profile by ID
-// @route   GET /api/users/:id
-// @access  Private
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select(
@@ -69,9 +63,6 @@ export const getUserById = async (req, res) => {
   }
 };
 
-// @desc    Update current user's profile (name, bio, profilePicture)
-// @route   PUT /api/users/profile
-// @access  Private
 export const updateProfile = async (req, res) => {
   try {
     const { name, bio, profilePicture } = req.body;
@@ -111,9 +102,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// @desc    Toggle block/unblock a user
-// @route   POST /api/users/block/:id
-// @access  Private
 export const toggleBlockUser = async (req, res) => {
   try {
     const targetUserId = req.params.id;
@@ -164,9 +152,6 @@ export const toggleBlockUser = async (req, res) => {
   }
 };
 
-// @desc    Get current user blocked list
-// @route   GET /api/users/me/blocked
-// @access  Private
 export const getBlockedUsers = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('blockedUsers');
@@ -182,9 +167,6 @@ export const getBlockedUsers = async (req, res) => {
   }
 };
 
-// @desc    Report a contact
-// @route   POST /api/users/report
-// @access  Private
 export const reportUser = async (req, res) => {
   try {
     const { reportedUserId, reason, details } = req.body;

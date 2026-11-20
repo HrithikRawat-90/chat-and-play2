@@ -34,7 +34,6 @@ export const ChatProvider = ({ children }) => {
   const [isJoinGroupOpen, setIsJoinGroupOpen] = useState(false);
   const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
 
-  // Total unread messages across all conversations
   const totalUnreadCount = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 
   useEffect(() => {
@@ -49,7 +48,6 @@ export const ChatProvider = ({ children }) => {
     activeConversationRef.current = activeConversation;
   }, [activeConversation]);
 
-  // Fetch messages when activeConversation changes
   const fetchMessages = useCallback(async (conversationId) => {
     if (!conversationId) return;
     setLoadingMessages(true);
@@ -65,7 +63,6 @@ export const ChatProvider = ({ children }) => {
     }
   }, []);
 
-  // Fetch all conversations for logged-in user
   const fetchConversations = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoadingConversations(true);
@@ -102,7 +99,6 @@ export const ChatProvider = ({ children }) => {
     }
   }, [isConnected, joinConversation]);
 
-  // Handle conversation switching with socket room management
   const selectConversation = (conv) => {
     if (!conv) return;
     const currentActiveId = (activeConversationRef.current?._id || activeConversationRef.current?.id)?.toString();
@@ -113,11 +109,10 @@ export const ChatProvider = ({ children }) => {
     }
     setActiveConversation(conv);
     setMobileView('chat');
-    // Ensure contact bio is always closed on mobile so user immediately sees chat messages
+    // Show the message feed when opening a chat on mobile.
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsRightSidebarOpen(false);
     }
-    // Mark this conversation unreadCount as cleared
     setConversations((prev) =>
       prev.map((c) =>
         (c._id || c.id)?.toString() === newConvId ? { ...c, unreadCount: 0 } : c
@@ -127,7 +122,6 @@ export const ChatProvider = ({ children }) => {
     fetchMessages(newConvId);
   };
 
-  // Socket event listener for real-time messages & conversation updates
   useEffect(() => {
     if (!socket) return;
 
@@ -137,12 +131,10 @@ export const ChatProvider = ({ children }) => {
       const msgConvId = (newMsg.conversationId?._id || newMsg.conversationId)?.toString();
       const activeConvId = (activeConversationRef.current?._id || activeConversationRef.current?.id)?.toString();
 
-      // 1. Play Apple-like incoming message chime if from another user / bot
       if (msgSenderId && msgSenderId !== currentUserId) {
         sounds.playMessageReceived();
       }
 
-      // 2. If message belongs to active chat, add to feed
       if (activeConvId && activeConvId === msgConvId) {
         setMessages((prev) => {
           const newId = (newMsg._id || newMsg.id)?.toString();
@@ -151,11 +143,10 @@ export const ChatProvider = ({ children }) => {
         });
       }
 
-      // 3. Update conversation list preview & increment unread badge if not active
       setConversations((prev) => {
         const index = prev.findIndex((c) => (c._id || c.id)?.toString() === msgConvId);
         if (index === -1) {
-          // New conversation created by partner! Re-fetch immediately
+          // Fetch conversations created by another participant.
           fetchConversations();
           return prev;
         }
@@ -206,7 +197,6 @@ export const ChatProvider = ({ children }) => {
     };
   }, [socket, fetchConversations, user?._id, user?.id]);
 
-  // Start or open conversation with another user
   const startConversationWithUser = async (recipientId) => {
     try {
       const res = await api.post('/conversations', { recipientId });
@@ -268,7 +258,6 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // Delete conversation and messages
   const deleteActiveConversation = async (conversationId) => {
     const targetId = (conversationId || activeConversation?._id || activeConversation?.id)?.toString();
     if (!targetId) return { success: false, message: 'No conversation selected' };
@@ -293,7 +282,6 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // Create a new group conversation
   const createGroupConversation = async ({ groupName, groupDescription, groupAvatar }) => {
     try {
       const res = await api.post('/conversations/group', {
@@ -315,7 +303,6 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // Join group using Group Join Code
   const joinGroupWithCode = async (code) => {
     try {
       const res = await api.post('/conversations/join-group', { code });
@@ -344,7 +331,6 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // Helper to extract contact or group details
   const getOtherParticipant = (conv) => {
     if (!conv) return null;
     if (conv.isGroup) {
@@ -377,7 +363,6 @@ export const ChatProvider = ({ children }) => {
     setIsRightSidebarOpen((prev) => !prev);
   };
 
-  // Active typing state for current conversation
   const currentTypingUsers = activeConversation
     ? typingMap[activeConversation._id] || []
     : [];

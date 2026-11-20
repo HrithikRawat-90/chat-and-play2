@@ -11,12 +11,10 @@ export const removeDefaultUsers = async () => {
       'bruce@chatplay.com',
     ];
 
-    // Find demo users
     const demoUsers = await User.find({ email: { $in: demoEmails } });
     if (demoUsers.length > 0) {
       const demoUserIds = demoUsers.map((u) => u._id);
 
-      // Remove conversations and messages associated with demo users
       const convs = await Conversation.find({ participants: { $in: demoUserIds } });
       const convIds = convs.map((c) => c._id);
 

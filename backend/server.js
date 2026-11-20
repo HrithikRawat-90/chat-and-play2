@@ -15,7 +15,6 @@ import chatRoutes from './routes/chatRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import { initSocket } from './socket/socketHandler.js';
 
-// Load environment variables
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -24,10 +23,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 
-// Initialize Socket.IO Server
 const io = initSocket(server);
 
-// Middleware
 app.use(
   cors({
     origin: process.env.NODE_ENV === 'production' ? true : (process.env.CLIENT_URL || 'http://localhost:5173'),
@@ -38,13 +35,11 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Attach io to req for potential route access
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
 
-// Health Check Route
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -53,19 +48,17 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api', chatRoutes);
 
-// In production, serve the built Vite frontend files as static assets
+// Serve the frontend from the same server in production.
 if (process.env.NODE_ENV === 'production') {
   const frontendDistPath = path.resolve(__dirname, '../frontend/dist');
   app.use(express.static(frontendDistPath));
 
   app.get('*', (req, res, next) => {
-    // If request starts with /api, pass to 404 handler
     if (req.path.startsWith('/api')) {
       return next();
     }
@@ -73,7 +66,6 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// 404 Handler for API routes
 app.use((req, res, next) => {
   res.status(404).json({
     success: false,
@@ -81,7 +73,6 @@ app.use((req, res, next) => {
   });
 });
 
-// Global Error Handler
 app.use((err, req, res, next) => {
   console.error('[Server Error]', err.stack || err);
   res.status(err.status || 500).json({
@@ -92,7 +83,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-// Connect to Database, remove default sample users, and start server
+// Connect to the database and prepare system accounts before accepting requests.
 const startServer = async () => {
   try {
     await connectDB();

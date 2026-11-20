@@ -42,7 +42,6 @@ const TicTacToeModal = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn select-none">
       <div className="w-full max-w-md bg-[#140e2b] border border-purple-900/50 rounded-3xl shadow-2xl shadow-purple-950/90 overflow-hidden flex flex-col">
-        {/* Top Header */}
         <div className="px-5 py-4 border-b border-purple-900/30 flex items-center justify-between bg-[#181136]/70">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300">
@@ -67,10 +66,8 @@ const TicTacToeModal = () => {
           </button>
         </div>
 
-        {/* Players Scoreboard */}
         <div className="px-5 py-4 border-b border-purple-900/30 bg-[#110b24]/60">
           <div className="grid grid-cols-3 items-center">
-            {/* Player X */}
             <div
               className={`flex flex-col items-center p-2 rounded-2xl transition-all ${
                 activeGame.turn === 'X' && !isGameOver
@@ -99,7 +96,6 @@ const TicTacToeModal = () => {
               </span>
             </div>
 
-            {/* VS Badge / Match Status */}
             <div className="text-center flex flex-col items-center">
               <span className="px-2.5 py-1 rounded-full bg-purple-950 border border-purple-800/40 text-[10px] font-bold text-purple-300 tracking-wider uppercase mb-1">
                 VS
@@ -109,7 +105,6 @@ const TicTacToeModal = () => {
               </span>
             </div>
 
-            {/* Player O */}
             <div
               className={`flex flex-col items-center p-2 rounded-2xl transition-all ${
                 activeGame.turn === 'O' && !isGameOver
@@ -140,7 +135,6 @@ const TicTacToeModal = () => {
           </div>
         </div>
 
-        {/* Turn & Outcome Banner */}
         <div className="py-2.5 px-4 text-center bg-[#171033] border-b border-purple-900/20">
           {isGameOver ? (
             isDraw ? (
@@ -172,7 +166,6 @@ const TicTacToeModal = () => {
           )}
         </div>
 
-        {/* Error Alert if any */}
         {errorMessage && (
           <div className="mx-5 mt-3 p-2.5 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -180,7 +173,6 @@ const TicTacToeModal = () => {
           </div>
         )}
 
-        {/* The 3x3 Tic-Tac-Toe Grid */}
         <div className="p-6 flex items-center justify-center">
           <div className="grid grid-cols-3 gap-2.5 sm:gap-3 w-64 h-64 sm:w-72 sm:h-72">
             {activeGame.board.map((cellValue, idx) => {
@@ -219,7 +211,6 @@ const TicTacToeModal = () => {
           </div>
         </div>
 
-        {/* Footer Actions */}
         <div className="px-6 py-4 border-t border-purple-900/30 bg-[#161031] flex items-center justify-between gap-3">
           <button
             onClick={() => exitGame(activeGame.gameId)}

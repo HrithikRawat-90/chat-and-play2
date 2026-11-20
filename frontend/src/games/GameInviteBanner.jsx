@@ -18,7 +18,6 @@ const GameInviteBanner = () => {
   const incomingConvId = (incomingInvite?.conversationId?._id || incomingInvite?.conversationId)?.toString();
   const outgoingConvId = (outgoingInvite?.conversationId?._id || outgoingInvite?.conversationId)?.toString();
 
-  // 1. Incoming Challenge (displayed if matching active chat or general)
   if (incomingInvite && (!convId || incomingConvId === convId)) {
     return (
       <div className="mx-4 my-2 p-3.5 rounded-2xl bg-gradient-to-r from-purple-900/90 via-[#231846] to-indigo-900/90 border border-purple-500/40 shadow-xl shadow-purple-950/60 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
@@ -57,7 +56,6 @@ const GameInviteBanner = () => {
     );
   }
 
-  // 2. Outgoing Challenge waiting for response
   if (outgoingInvite && (!convId || outgoingConvId === convId)) {
     return (
       <div className="mx-4 my-2 p-3 rounded-2xl bg-[#1a1236]/90 border border-purple-800/40 shadow-lg flex items-center justify-between gap-3 animate-fadeIn">

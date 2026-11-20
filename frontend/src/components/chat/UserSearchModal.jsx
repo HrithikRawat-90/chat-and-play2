@@ -46,7 +46,6 @@ const UserSearchModal = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-md bg-[#130e26] border border-purple-900/40 rounded-2xl shadow-2xl shadow-purple-950/60 overflow-hidden flex flex-col max-h-[85vh]">
-        {/* Modal Header */}
         <div className="p-4 border-b border-purple-900/30 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-400" />
@@ -60,7 +59,6 @@ const UserSearchModal = () => {
           </button>
         </div>
 
-        {/* Search Input */}
         <div className="p-3 border-b border-purple-900/20">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400/60" />
@@ -75,7 +73,6 @@ const UserSearchModal = () => {
           </div>
         </div>
 
-        {/* User Search Results */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-10 text-purple-400">

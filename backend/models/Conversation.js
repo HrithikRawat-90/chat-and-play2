@@ -67,7 +67,6 @@ const conversationSchema = new mongoose.Schema(
   }
 );
 
-// Index participants for fast lookup
 conversationSchema.index({ participants: 1 });
 conversationSchema.index({ isModerationInbox: 1 }, { unique: true, partialFilterExpression: { isModerationInbox: true } });
 

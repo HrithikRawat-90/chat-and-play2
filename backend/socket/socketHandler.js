@@ -20,7 +20,6 @@ export const initSocket = (server) => {
     maxHttpBufferSize: 10 * 1024 * 1024,
   });
 
-  // Socket authentication middleware
   io.use(async (socket, next) => {
     try {
       const token =
@@ -53,16 +52,14 @@ export const initSocket = (server) => {
     const userId = socket.user._id.toString();
     console.log(`[Socket] User connected: ${socket.user.name} (${socket.id})`);
 
-    // 1. Manage user presence
+    // Presence
     if (!onlineUsers.has(userId)) {
       onlineUsers.set(userId, new Set());
     }
     onlineUsers.get(userId).add(socket.id);
 
-    // Join personal user room for direct notifications
     socket.join(`user:${userId}`);
 
-    // Auto-join all existing conversation rooms for this user
     try {
       const userConvs = await Conversation.find({ participants: userId }).select('_id');
       userConvs.forEach((c) => {
@@ -73,7 +70,6 @@ export const initSocket = (server) => {
       console.warn('Could not auto-join conversation rooms:', roomErr.message);
     }
 
-    // Update user status in DB
     try {
       await User.findByIdAndUpdate(userId, {
         isOnline: true,
@@ -83,13 +79,12 @@ export const initSocket = (server) => {
       console.warn('Could not update user online status in DB:', dbErr.message);
     }
 
-    // Broadcast user online to everyone
     io.emit('user:online', {
       userId,
       isOnline: true,
     });
 
-    // Send currently online users list to newly connected socket (always include AI Chatbot)
+    // Include the chatbot in the initial online list.
     const activeUserIds = Array.from(onlineUsers.keys());
     try {
       const botDoc = await User.findOne({ $or: [{ isBot: true }, { name: 'Chatbot' }] }).select('_id');
@@ -99,7 +94,7 @@ export const initSocket = (server) => {
     } catch (_) {}
     socket.emit('users:online:list', activeUserIds);
 
-    // 2. Join private conversation room
+    // Conversation rooms
     socket.on('join:conversation', async ({ conversationId }) => {
       try {
         if (!conversationId) return;
@@ -131,7 +126,7 @@ export const initSocket = (server) => {
       }
     });
 
-    // 3. Leave private conversation room
+    // Leave a conversation room
     socket.on('leave:conversation', ({ conversationId }) => {
       if (conversationId) {
         socket.leave(conversationId);
@@ -139,7 +134,7 @@ export const initSocket = (server) => {
       }
     });
 
-    // 4. Real-time message sending
+    // Messages
     socket.on('message:send', async ({ conversationId, text, imageUrl, audioUrl, replyTo }, callback) => {
       try {
         if (!conversationId) {
@@ -166,7 +161,6 @@ export const initSocket = (server) => {
           return;
         }
 
-        // Save message to MongoDB
         const newMsg = await Message.create({
           conversationId,
           senderId: socket.user._id,
@@ -177,7 +171,6 @@ export const initSocket = (server) => {
           isRead: false,
         });
 
-        // Update conversation summary
         conversation.lastMessage = {
           text: text ? text.trim() : (audioUrl ? '🎤 Voice message' : (imageUrl ? '📷 Shared an image' : '')),
           sender: socket.user._id,
@@ -190,7 +183,7 @@ export const initSocket = (server) => {
           'name profilePicture bio isOnline'
         );
 
-        // Emit message:receive to conversation room AND directly to participants' personal rooms
+        // Send the message to the conversation and each participant.
         io.to(conversationId).emit('message:receive', populatedMsg);
         conversation.participants.forEach((pId) => {
           io.to(`user:${pId.toString()}`).emit('message:receive', populatedMsg);
@@ -203,7 +196,7 @@ export const initSocket = (server) => {
 
         if (callback) callback({ success: true, message: populatedMsg });
 
-        // Auto-reply if conversational partner is Chatbot (or mentioned in group)
+        // The chatbot replies to direct messages and group mentions.
         try {
           const participants = await User.find({ _id: { $in: conversation.participants } });
           const botUser = participants.find((p) => p.isBot || p.email === 'chatbot@chatplay.ai');
@@ -212,32 +205,27 @@ export const initSocket = (server) => {
           const shouldBotReply = !conversation.isModerationInbox && botUser && botUser._id.toString() !== userId && (!conversation.isGroup || isMentioned);
 
           if (shouldBotReply) {
-            // 1. Emit typing indicator for bot
             io.to(conversationId).emit('typing:start', {
               conversationId,
               userId: botUser._id.toString(),
               userName: 'Chatbot',
             });
 
-            // 2. Fetch recent conversation context
             const recentMsgs = await Message.find({ conversationId })
               .populate('senderId', 'name isBot')
               .sort({ createdAt: -1 })
               .limit(8);
             recentMsgs.reverse();
 
-            // 3. Call Gemini service asynchronously
             setTimeout(async () => {
               try {
                 const botReplyText = await getChatbotReply(recentMsgs);
 
-                // Stop typing indicator
                 io.to(conversationId).emit('typing:stop', {
                   conversationId,
                   userId: botUser._id.toString(),
                 });
 
-                // Save bot reply
                 const botMsg = await Message.create({
                   conversationId,
                   senderId: botUser._id,
@@ -258,7 +246,6 @@ export const initSocket = (server) => {
                   'name profilePicture bio isOnline isBot'
                 );
 
-                // Emit to conversation room and to human user
                 io.to(conversationId).emit('message:receive', populatedBotMsg);
                 io.to(`user:${userId}`).emit('message:receive', populatedBotMsg);
                 io.to(`user:${userId}`).emit('conversation:updated', {
@@ -284,7 +271,7 @@ export const initSocket = (server) => {
       }
     });
 
-    // 5. Typing indicators
+    // Typing indicators
     socket.on('typing:start', ({ conversationId }) => {
       if (!conversationId) return;
       socket.to(conversationId).emit('typing:start', {
@@ -302,7 +289,7 @@ export const initSocket = (server) => {
       });
     });
 
-    // 6. Read receipts
+    // Read receipts
     socket.on('message:read', async ({ conversationId, messageId }) => {
       try {
         if (!conversationId || !messageId) return;
@@ -317,11 +304,9 @@ export const initSocket = (server) => {
       }
     });
 
-    // ----------------------------------------------------
-    // 7. MULTIPLAYER PLAY TOGETHER (TIC-TAC-TOE) EVENTS
-    // ----------------------------------------------------
+    // Tic-Tac-Toe events
 
-    // A. Send Game Invitation
+    // Send an invitation
     socket.on('game:invite', async ({ conversationId }, callback) => {
       try {
         if (!conversationId) {
@@ -346,7 +331,6 @@ export const initSocket = (server) => {
           return;
         }
 
-        // Ensure inviter socket has joined the conversation room
         socket.join(conversationId);
 
         const invite = gameManager.createInvite(conversationId, socket.user, recipient);
@@ -358,7 +342,7 @@ export const initSocket = (server) => {
         console.log(`[Game] ${socket.user.name} invited ${recipient.name} to Tic-Tac-Toe`);
         if (callback) callback({ success: true, invite });
 
-        // If recipient is Chatbot, auto-accept challenge!
+        // The chatbot accepts challenges automatically.
         const recipientDoc = await User.findById(recipient._id);
         if (recipientDoc?.isBot || recipientDoc?.email === 'chatbot@chatplay.ai') {
           setTimeout(() => {
@@ -378,7 +362,7 @@ export const initSocket = (server) => {
       }
     });
 
-    // B. Accept Game Invitation
+    // Accept an invitation
     socket.on('game:accept', async ({ conversationId }, callback) => {
       try {
         const invite = gameManager.getInvite(conversationId);
@@ -387,10 +371,9 @@ export const initSocket = (server) => {
           return;
         }
 
-        // Ensure acceptor socket has joined the conversation room
         socket.join(conversationId);
 
-        // Creator is Player X, Acceptor is Player O
+        // The inviter plays X and the recipient plays O.
         const newGame = gameManager.startNewGame(
           conversationId,
           invite.sender,
@@ -400,7 +383,7 @@ export const initSocket = (server) => {
         const playerXId = (newGame.players.X.id || newGame.players.X._id).toString();
         const playerOId = (newGame.players.O.id || newGame.players.O._id).toString();
 
-        // Broadcast to conversation room AND directly to both players
+        // Notify the conversation and both players.
         io.to(conversationId).emit('game:started', newGame);
         io.to(`user:${playerXId}`).emit('game:started', newGame);
         io.to(`user:${playerOId}`).emit('game:started', newGame);
@@ -414,7 +397,7 @@ export const initSocket = (server) => {
       }
     });
 
-    // C. Reject Game Invitation
+    // Reject an invitation
     socket.on('game:reject', ({ conversationId }) => {
       const invite = gameManager.getInvite(conversationId);
       gameManager.clearInvite(conversationId);
@@ -429,7 +412,7 @@ export const initSocket = (server) => {
       console.log(`[Game] Invitation in room ${conversationId} rejected by ${socket.user.name}`);
     });
 
-    // D. Make a move on the board
+    // Make a move
     socket.on('game:move', async ({ gameId, cellIndex }, callback) => {
       try {
         const result = gameManager.playMove(gameId, userId, cellIndex);
@@ -443,14 +426,14 @@ export const initSocket = (server) => {
         const playerXId = (updatedGame.players.X.id || updatedGame.players.X._id).toString();
         const playerOId = (updatedGame.players.O.id || updatedGame.players.O._id).toString();
 
-        // Broadcast updated game state to conversation room AND to both player rooms
+        // Send the updated game to the conversation and both players.
         io.to(updatedGame.conversationId).emit('game:updated', updatedGame);
         io.to(`user:${playerXId}`).emit('game:updated', updatedGame);
         io.to(`user:${playerOId}`).emit('game:updated', updatedGame);
 
         if (callback) callback({ success: true, game: updatedGame });
 
-        // If next turn is Chatbot, execute bot move automatically
+        // Play the chatbot’s turn automatically.
         try {
           if (updatedGame.status === 'in_progress') {
             const nextPlayer = updatedGame.players[updatedGame.turn];
@@ -491,7 +474,7 @@ export const initSocket = (server) => {
       }
     });
 
-    // E. Request a Rematch / Play Again
+    // Request a rematch
     socket.on('game:rematch', ({ gameId }) => {
       const updatedGame = gameManager.rematch(gameId);
       if (updatedGame) {
@@ -506,7 +489,7 @@ export const initSocket = (server) => {
       }
     });
 
-    // F. Exit / Leave Game
+    // Leave a game
     socket.on('game:exit', ({ gameId }) => {
       const endedGame = gameManager.endGame(gameId);
       if (endedGame) {
@@ -525,7 +508,7 @@ export const initSocket = (server) => {
       }
     });
 
-    // 8. Disconnection cleanup
+    // Disconnection cleanup
     socket.on('disconnect', async () => {
       console.log(`[Socket] User disconnected: ${socket.user.name} (${socket.id})`);
 
@@ -545,7 +528,6 @@ export const initSocket = (server) => {
             console.warn('Could not update user offline status in DB:', dbErr.message);
           }
 
-          // Broadcast offline event
           io.emit('user:offline', {
             userId,
             isOnline: false,
@@ -558,5 +540,3 @@ export const initSocket = (server) => {
 
   return io;
 };
-
-export const getOnlineUsers = () => Array.from(onlineUsers.keys());

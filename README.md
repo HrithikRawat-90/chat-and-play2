@@ -1,261 +1,111 @@
-# Chat & Play — MERN Real-Time Chat & Multiplayer Gaming Application
+# Chat & Play
 
-**Chat & Play** is a full-stack real-time messaging application featuring an integrated multiplayer Tic-Tac-Toe gaming experience directly inside conversation rooms. Built with the MERN stack (MongoDB, Express, React 19, Node.js), Tailwind CSS v4, and Socket.IO.
+Chat & Play is a real-time messaging app where users can talk, share images and voice messages, and play Tic-Tac-Toe together. It uses React for the frontend, Express and Socket.IO for the backend, and MongoDB to store accounts and conversations.
 
-Designed with a sleek, dark-purple aesthetic inspired by modern messaging applications, Chat & Play enables two authenticated users to chat in real time, see typing indicators, share text and images, and challenge each other to a game of Tic-Tac-Toe without ever leaving their chat.
+## Features
 
----
+- Register, sign in, and update your profile.
+- Find users, start private conversations, and create or join groups.
+- Send messages and attachments with live presence and typing indicators.
+- Invite a chat partner to a game of Tic-Tac-Toe.
+- Block or report users and delete conversations.
+- Chat with a built-in assistant and use Gemini-powered writing suggestions when an API key is configured.
 
-## 📸 User Interface Design
+## Getting started
 
-The application faithfully follows a dark-purple three-panel interface:
-- **Left Sidebar**: Current user avatar with green online badge, search conversations, recent chats with timestamps and unread counters, Chats/Groups tabs, and a user discovery modal (`+`).
-- **Center Chat Panel**: Contact info header, online status, audio/video call placeholders, collapsible info toggle, the standout **🎮 Play Together** button, scrollable message bubbles with timestamps, animated typing indicators, and message input with emoji picker & image sharing.
-- **Right Sidebar (Collapsible)**: Large contact profile picture, bio status, "Media, Links and Files" photo grid, "Groups in common", notifications toggle, and safety controls (Block, Report, Delete Chat).
+You'll need Node.js 20.19 or a later 20.x release, or Node.js 22.12 or later, along with npm and a MongoDB database. The backend also tries to start an in-memory MongoDB instance if it cannot connect to the configured database. That fallback needs a compatible MongoDB binary and does not provide persistent storage.
 
----
+1. Install the dependencies from the project root:
 
-## 🚀 Key Features
+   ```bash
+   npm install
+   cd backend && npm install
+   cd ../frontend && npm install
+   cd ..
+   ```
 
-1. **Authentication & Security**:
-   - Secure registration and login with bcrypt password hashing (10 salt rounds).
-   - JWT token authentication for REST APIs and Socket.IO handshakes.
-   - Protected client routes with smooth session validation.
+2. Create a `backend/.env` file with your settings. For example:
 
-2. **Real-Time Communication (Socket.IO)**:
-   - Instant messaging with conversation room isolation.
-   - Live presence indicator (green dot updates instantly when users connect/disconnect).
-   - Typing indicators with auto-clearing debouncing.
-   - Real-time read receipt confirmations.
-   - Message persistence in MongoDB with full history retrieval.
+   ```env
+   PORT=5000
+   NODE_ENV=development
+   CLIENT_URL=http://localhost:5173
+   MONGODB_URI=mongodb://127.0.0.1:27017/chat_and_play
+   JWT_SECRET=replace_with_a_strong_secret
+   JWT_EXPIRE=30d
+   ```
 
-3. **Flagship Feature: Play Together (Tic-Tac-Toe)**:
-   - Challenge chat partner directly via the **Play Together** button.
-   - Real-time challenge notifications with Accept & Decline controls.
-   - Interactive 3x3 game board overlay with Player X and Player O profile cards.
-   - Live turn banners ("Your Turn (X)" with glowing pulsing ring).
-   - Server-validated game logic: prevents playing out of turn, prevents overwriting cells, and prevents moves on finished games.
-   - Automatic victory detection (rows, columns, diagonals) with winning line highlight.
-   - Draw detection and score tracking across rematches.
-   - "Play Again" rematch button and clean match exit.
+   Replace the secret and database address as needed. Add `GEMINI_API_KEY` if you want live AI responses. Keep this file private.
 
-4. **Zero-Setup Database Architecture**:
-   - Seamless connection to local MongoDB (`mongodb://127.0.0.1:27017/chat_and_play`) or remote MongoDB Atlas.
-   - Automatic built-in embedded in-memory MongoDB fallback with cached binary execution—enabling anyone to clone and run the application immediately without installing or configuring a MongoDB daemon.
+3. Start the backend and frontend in separate terminals, both from the project root:
 
----
+   ```bash
+   npm run server
+   ```
 
-## 🛠️ Technology Stack
+   ```bash
+   npm run client
+   ```
 
-### Admin reports
+4. Open [http://localhost:5173](http://localhost:5173) and create an account. The backend runs on port 5000 by default.
 
-Reports are delivered as Chatbot messages in a separate, read-only "Reports from Chatbot" conversation. Register the administrator account as `admin@gmail.com`, verify that you control that account, and set `REPORT_ADMIN_USER_ID` in the backend environment to that account's MongoDB `_id`. Because registration does not verify email ownership, an email address alone is not sufficient to identify the administrator. Restart the backend after setting the value. Reports return an unavailable error until the configured ID and email match an existing non-bot account. The report inbox is isolated from Gemini conversation prompts; reports are not emailed. Use a persistent MongoDB database if reports must survive a restart.
+## Configuration
 
-To find the ID in a trusted MongoDB console, run `db.users.findOne({ email: 'admin@gmail.com' }, { _id: 1 })` against the application's database, then copy the ObjectId value (without the `ObjectId(...)` wrapper) into `REPORT_ADMIN_USER_ID`. If the configured administrator changes, remove or migrate the old report inbox under an appropriate retention policy before enabling delivery to the new account.
+The backend supports these environment settings:
 
-- **Frontend**:
-  - React 19
-  - Vite
-  - Tailwind CSS v4
-  - React Router DOM
-  - Axios
-  - Socket.IO Client
-  - Lucide React icons
-- **Backend**:
-  - Node.js & Express.js
-  - MongoDB & Mongoose
-  - Socket.IO
-  - JSON Web Tokens (JWT)
-  - bcryptjs
-  - cookie-parser & cors
+| Variable | Purpose |
+| --- | --- |
+| `PORT` | Backend port; defaults to 5000. |
+| `NODE_ENV` | Application environment. Use `production` to serve the built frontend from the backend. |
+| `CLIENT_URL` | Frontend origin used for development CORS. |
+| `MONGODB_URI` | MongoDB connection string. |
+| `JWT_SECRET` | Secret used to sign authentication tokens. |
+| `JWT_EXPIRE` | Token lifetime. |
+| `GEMINI_API_KEY` | Optional key for Gemini responses and writing assistance. |
+| `REPORT_ADMIN_USER_ID` | MongoDB ID of the account that receives user reports. |
 
----
+### User reports
 
-## 📂 Project Structure
+Reports appear in a separate, read-only **Reports from Chatbot** conversation; they are not emailed or included in Gemini prompts. To enable reports, register the administrator account as `admin@gmail.com`, verify that you control it, and set `REPORT_ADMIN_USER_ID` to that account's MongoDB `_id`. Registration does not verify email ownership, so the email address alone is not enough to identify the administrator. Restart the backend after setting the ID.
 
-```text
-ChattingApplication/
-├── backend/
-│   ├── config/
-│   │   ├── db.js                 # Mongoose connection with embedded fallback
-│   │   └── cleanDefaultUsers.js  # Cleans lingering mock accounts from DB
-│   ├── controllers/
-│   │   ├── authController.js     # Register, login, getMe, logout
-│   │   ├── userController.js     # User search, block/unblock, report
-│   │   └── chatController.js     # Conversations, messages & chat deletion
-│   ├── games/
-│   │   ├── ticTacToe.js          # Pure game engine & validation logic
-│   │   └── gameManager.js        # In-memory multiplayer match manager
-│   ├── middleware/
-│   │   └── auth.js               # JWT Bearer token verification
-│   ├── models/
-│   │   ├── User.js               # User schema with bcrypt & blockedUsers
-│   │   ├── Conversation.js       # 1-on-1 chat room schema
-│   │   └── Message.js            # Persistent text & image messages
-│   ├── routes/
-│   │   ├── authRoutes.js         # /api/auth routes
-│   │   ├── userRoutes.js         # /api/users routes (search, block, report)
-│   │   └── chatRoutes.js         # /api/conversations & /api/messages routes
-│   ├── socket/
-│   │   └── socketHandler.js      # Socket.IO auth, rooms, messaging & gameplay
-│   ├── server.js                 # HTTP server & static frontend serving
-│   ├── test-auth.js              # Module 1 auth test suite (8 tests)
-│   ├── test-chat.js              # Module 2 chat & actions test suite (12 tests)
-│   ├── test-socket.js            # Module 3 Socket.IO test suite (11 tests)
-│   ├── test-game.js              # Module 4 Tic-Tac-Toe test suite (8 tests)
-│   └── test-e2e.js               # Module 5 Complete E2E integration test
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── chat/         # 3-panel chat components (Sidebar, Feed, Input, ContactInfo)
-│   │   │   └── ProtectedRoute.jsx
-│   │   ├── context/
-│   │   │   ├── AuthContext.jsx   # Authentication state & session persistence
-│   │   │   ├── ChatContext.jsx   # Active chat, search & message state
-│   │   │   └── SocketContext.jsx # Socket.IO lifecycle & live presence
-│   │   ├── games/
-│   │   │   ├── GameContext.jsx   # Real-time multiplayer game state
-│   │   │   ├── TicTacToeModal.jsx# 3x3 interactive board & scoreboard
-│   │   │   └── GameInviteBanner.jsx
-│   │   ├── pages/
-│   │   │   ├── Login.jsx
-│   │   │   ├── Register.jsx
-│   │   │   └── ChatDashboard.jsx
-│   │   ├── services/
-│   │   │   └── api.js        # Axios instance with Bearer interceptor
-│   │   ├── socket/
-│   │   │   └── socket.js     # Socket.IO client factory
-│   │   ├── App.jsx           # Root application router
-│   │   └── index.css         # Dark purple theme styling & scrollbars
-│   ├── vite.config.js
-│   └── index.html
-├── PROJECT_PROGRESS.md       # Permanent project handover & progress tracker
-├── ARCHITECTURE.md           # Database schemas, APIs, & Socket events
-├── render.yaml               # Cloud deployment configuration
-├── package.json              # Unified root scripts
-└── README.md
+You can find the ID in a trusted MongoDB console:
+
+```javascript
+db.users.findOne({ email: 'admin@gmail.com' }, { _id: 1 })
 ```
 
----
+Copy the ID without the `ObjectId(...)` wrapper. Reports remain unavailable until the ID and email match an existing non-bot account. Use a persistent database if reports need to survive a restart. If you change the administrator, remove or migrate the old report inbox according to your retention policy before enabling delivery to the new account.
 
-## ⚡ Quick Start Guide
+For Render, set `REPORT_ADMIN_USER_ID` in the service's environment settings and use the database containing the administrator and chatbot accounts. The local `.env` file is not uploaded. Save the setting and restart the service.
 
-### 1. Prerequisites
-- Node.js (v18+)
-- npm (v9+)
-- *(Optional)* MongoDB locally or via MongoDB Atlas. If no MongoDB daemon is detected, the built-in embedded fallback launches automatically.
+## Tests
 
-### 2. Installation
-
-Clone or open the workspace and install all dependencies:
-
-```bash
-# In backend
-cd backend
-npm install
-
-# In frontend
-cd ../frontend
-npm install
-```
-
-### 3. Run Development Servers
-
-Open two terminals (or run root commands):
-
-**Terminal 1 — Backend Server:**
-```bash
-npm run server
-# Runs on http://localhost:5000
-```
-
-**Terminal 2 — Frontend Client:**
-```bash
-npm run client
-# Runs on http://localhost:5173
-```
-
-Visit **http://localhost:5173** in your browser.
-
----
-
-## 🧪 Automated Test Suites
-
-You can execute all automated test suites covering all 5 modules with a single command from the root directory:
+Run the test suites from the project root:
 
 ```bash
 npm test
 ```
 
-Or run individual module test suites:
+Individual suites are available as `npm run test:auth`, `test:chat`, `test:socket`, `test:game`, `test:ai`, and `test:e2e`. They start the backend and require a working MongoDB connection or a working in-memory fallback.
+
+## Production
+
+Build the frontend and install the dependencies with:
 
 ```bash
-# Module 1: Auth & User Model Tests (8 tests)
-npm run test:auth
-
-# Module 2: User Search & Chat History Tests (9 tests)
-npm run test:chat
-
-# Module 3: Socket.IO Real-Time Messaging & Presence Tests (11 tests)
-npm run test:socket
-
-# Module 4: Tic-Tac-Toe Pure Engine & Multiplayer Flow Tests (8 tests)
-npm run test:game
-
-# Module 5: Complete End-to-End User Lifecycle Test (10 checkpoints)
-npm run test:e2e
+npm run build
 ```
 
----
-
-## 🎓 College Demonstration Walkthrough
-
-Follow these steps to demonstrate the application to professors or evaluators:
-
-1. **Open Two Browser Windows**:
-   - Open Browser 1 (e.g. Chrome) at `http://localhost:5173`.
-   - Open Browser 2 (e.g. Chrome Incognito or Firefox) at `http://localhost:5173`.
-
-2. **Log In or Register**:
-   - Use the pre-seeded demo accounts or create your own:
-     - **User 1**: `talan@chatplay.com` / `password123` (*Talan Septimus*)
-     - **User 2**: `aubrey@chatplay.com` / `password123` (*Aubrey Webb*)
-
-3. **Demonstrate Real-Time Chat**:
-   - In Browser 1, select Aubrey from the chat list (or click `+` to search for Aubrey).
-   - In Browser 2, select Talan.
-   - Observe the **green online dot** indicator next to both names.
-   - Type a message in Browser 1: notice the **animated typing indicator** appear in real-time in Browser 2!
-   - Send the message: notice it appears instantly without page refresh in Browser 2.
-   - Share a photo attachment using the image icon.
-
-4. **Demonstrate the Flagship Feature: Play Together (Tic-Tac-Toe)**:
-   - In Browser 1, click the **🎮 Play Together** button in the chat header.
-   - In Browser 2, an **animated challenge banner** immediately appears: *"Talan Septimus challenged you to a real-time game of Tic-Tac-Toe"*.
-   - In Browser 2, click **Accept & Play**.
-   - Both browser windows instantly open the **shared multiplayer 3x3 game board**!
-   - Make alternating moves:
-     - Browser 1 places an `X` in the center. Both screens synchronize immediately.
-     - Try clicking an occupied cell or moving out of turn: notice the move is strictly rejected by the backend server.
-     - Complete a 3-in-a-row diagonal or row: notice the **winning line highlights in neon emerald**, the celebration banner appears, and the match score updates.
-   - Click **Play Again**: the board clears for a rematch while preserving the scores!
-   - Click **Leave Game**: the session closes smoothly for both participants.
-
----
-
-## 🌐 Production Deployment
-
-The backend server is configured to serve the built Vite frontend statically in production mode:
+Set the backend environment variables, including `NODE_ENV=production`, then start the app from the project root:
 
 ```bash
-# 1. Build the frontend
-npm run build
-
-# 2. Start unified production server
 npm start
 ```
-The entire application runs on `http://localhost:5000`.
 
-A ready-to-deploy [render.yaml](file:///e:/Projects/ChattingApplication/render.yaml) is included for 1-click cloud deployment on Render.
-#   c h a t - a n d - p l a y  
- 
+The backend serves the frontend build and API on the same port.
+
+## Project structure
+
+- `frontend/` contains the React app, components, contexts, and styles.
+- `backend/` contains the API, database models, Socket.IO handlers, game logic, and tests.
+- `ARCHITECTURE.md` contains additional details about the application's structure and events.

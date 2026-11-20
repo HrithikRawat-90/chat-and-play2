@@ -20,9 +20,7 @@ async function waitForServer(baseURL, maxRetries = 20) {
 async function runGameTests() {
   console.log('--- STARTING MODULE 4 TIC-TAC-TOE GAME TESTS ---');
 
-  // ==========================================
   // PART 1: PURE GAME ENGINE UNIT TESTS
-  // ==========================================
   console.log('\n[Part 1] Testing Pure Game Engine Logic...');
   const p1 = { id: 'user_x', name: 'Alice', profilePicture: '' };
   const p2 = { id: 'user_o', name: 'Bob', profilePicture: '' };
@@ -40,7 +38,6 @@ async function runGameTests() {
   res = makeMove(game, 'user_x', 99); // Out of bounds
   console.assert(!res.success, 'Out of bounds move should fail');
 
-  // Valid move X on cell 0
   res = makeMove(game, 'user_x', 0);
   console.assert(res.success && game.board[0] === 'X', 'Move X failed');
   console.assert(game.turn === 'O', 'Turn did not switch to O');
@@ -49,15 +46,11 @@ async function runGameTests() {
   res = makeMove(game, 'user_o', 0);
   console.assert(!res.success, 'Occupied cell move should fail');
 
-  // Move O on cell 3
   res = makeMove(game, 'user_o', 3);
   console.assert(res.success && game.board[3] === 'O', 'Move O failed');
 
-  // Move X on cell 1
   makeMove(game, 'user_x', 1);
-  // Move O on cell 4
   makeMove(game, 'user_o', 4);
-  // Move X on cell 2 -> Row 1 Win [0, 1, 2]!
   res = makeMove(game, 'user_x', 2);
   console.assert(res.success, 'Move 2 failed');
   console.assert(game.status === 'completed', 'Game should be completed');
@@ -99,9 +92,7 @@ async function runGameTests() {
   console.assert(drawGame.scores.draws === 1, 'Draw count mismatch');
   console.log('✓ Draw scenario detection verified');
 
-  // ==========================================
   // PART 2: MULTIPLAYER SOCKET INTEGRATION TESTS
-  // ==========================================
   console.log('\n[Part 2] Testing Socket.IO Multiplayer Game Flow...');
   const baseURL = 'http://localhost:5000';
   await waitForServer(baseURL);
@@ -229,12 +220,9 @@ async function runGameTests() {
   console.log('✓ Move 2 (O at 0) synchronized');
 
   // Step 6: Alternating moves until Player 1 wins via Diagonal [2, 4, 6]
-  // P1 moves cell 2 (X)
   await new Promise((r) => socket1.emit('game:move', { gameId: activeGameId, cellIndex: 2 }, r));
-  // P2 moves cell 1 (O)
   await new Promise((r) => socket2.emit('game:move', { gameId: activeGameId, cellIndex: 1 }, r));
 
-  // P1 moves cell 6 (X) -> Diagonal Win [2, 4, 6]!
   console.log('[Step 6] Player 1 moves cell 6 to complete diagonal [2, 4, 6]...');
   const winPromise = new Promise((resolve) => {
     socket2.once('game:updated', (finalGame) => {

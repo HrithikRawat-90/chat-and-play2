@@ -20,7 +20,6 @@ const ChatList = () => {
   const [search, setSearch] = useState('');
 
   const filteredConversations = useMemo(() => {
-    // 1. Filter by active tab (1-on-1 chats vs groups)
     const tabFiltered = conversations.filter((conv) => {
       if (activeTab === 'groups') return Boolean(conv.isGroup);
       return !conv.isGroup;
@@ -28,7 +27,6 @@ const ChatList = () => {
 
     if (!search.trim()) return tabFiltered;
 
-    // 2. Filter by search query
     return tabFiltered.filter((conv) => {
       const other = getOtherParticipant(conv);
       const name = (conv.isGroup ? conv.groupName : other?.name)?.toLowerCase() || '';
@@ -42,10 +40,8 @@ const ChatList = () => {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-[#130f24]">
-      {/* Search Bar */}
       <SearchBar search={search} setSearch={setSearch} />
 
-      {/* Group Action Buttons Bar (Shown when on Groups tab) */}
       {activeTab === 'groups' && (
         <div className="px-3 pb-2 pt-1 flex items-center gap-2 border-b border-purple-900/20">
           <button
@@ -63,7 +59,6 @@ const ChatList = () => {
         </div>
       )}
 
-      {/* Conversation Items List */}
       <div className="flex-1 overflow-y-auto space-y-1 py-1">
         {loadingConversations ? (
           <div className="flex flex-col items-center justify-center py-12 text-purple-400">

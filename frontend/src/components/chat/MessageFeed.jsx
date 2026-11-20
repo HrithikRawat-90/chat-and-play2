@@ -74,7 +74,6 @@ const MessageFeed = () => {
         })
       )}
 
-      {/* Real-time Typing Indicator Bubble */}
       {isSomeoneTyping && (
         <div className="flex items-center gap-2 text-xs text-purple-300/70 py-2 animate-pulse">
           <div className="flex items-center gap-1 bg-[#221c3b] px-3.5 py-2 rounded-2xl rounded-tl-sm border border-purple-900/30">

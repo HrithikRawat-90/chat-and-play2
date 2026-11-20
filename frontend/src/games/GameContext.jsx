@@ -13,7 +13,6 @@ export const GameProvider = ({ children }) => {
   const [outgoingInvite, setOutgoingInvite] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Register socket listeners for gameplay
   useEffect(() => {
     if (!socket) return;
 
@@ -68,7 +67,6 @@ export const GameProvider = ({ children }) => {
     };
   }, [socket, user?._id]);
 
-  // Send an invitation to conversation partner
   const sendInvite = useCallback(
     (conversationId) => {
       if (!socket || !isConnected || !conversationId) return;
@@ -85,7 +83,6 @@ export const GameProvider = ({ children }) => {
     [socket, isConnected]
   );
 
-  // Accept incoming challenge
   const acceptInvite = useCallback(
     (conversationId) => {
       if (!socket || !conversationId) return;
@@ -103,7 +100,6 @@ export const GameProvider = ({ children }) => {
     [socket]
   );
 
-  // Decline challenge
   const rejectInvite = useCallback(
     (conversationId) => {
       if (!socket || !conversationId) return;
@@ -113,7 +109,6 @@ export const GameProvider = ({ children }) => {
     [socket]
   );
 
-  // Make a move
   const makeMove = useCallback(
     (gameId, cellIndex) => {
       if (!socket || !gameId) return;
@@ -127,7 +122,6 @@ export const GameProvider = ({ children }) => {
     [socket]
   );
 
-  // Request Rematch / Play Again
   const rematch = useCallback(
     (gameId) => {
       if (!socket || !gameId) return;
@@ -136,7 +130,6 @@ export const GameProvider = ({ children }) => {
     [socket]
   );
 
-  // Exit match
   const exitGame = useCallback(
     (gameId) => {
       if (!socket || !gameId) return;

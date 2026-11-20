@@ -42,7 +42,6 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
 
   return (
     <div className="h-16 px-3 sm:px-6 flex items-center justify-between border-b border-purple-900/30 bg-[#130f24] select-none flex-shrink-0 sticky top-0 z-30 w-full shadow-md">
-      {/* Left Contact Details & Mobile Back */}
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 mr-2">
         <button
           onClick={() => setMobileView('list')}
@@ -119,9 +118,7 @@ const ChatHeader = ({ onPlayTogetherClick }) => {
         </div>
       </div>
 
-      {/* Right Action Icons & Play Together Button */}
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-        {/* Play Together Standout Button */}
         {!activeConversation?.isModerationInbox && <button
           onClick={onPlayTogetherClick}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#007aff] hover:bg-[#006ee6] text-white font-medium text-xs shadow-sm active:scale-95 transition-all cursor-pointer mr-1"

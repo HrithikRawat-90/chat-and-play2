@@ -42,7 +42,6 @@ const ChatItem = ({ conversation, isSelected, onClick }) => {
           : 'hover:bg-[#181233]/70 border border-transparent'
       }`}
     >
-      {/* Contact Avatar with Online Dot */}
       <div className="relative flex-shrink-0">
         <img
           src={avatar}
@@ -54,7 +53,6 @@ const ChatItem = ({ conversation, isSelected, onClick }) => {
         )}
       </div>
 
-      {/* Middle Text Details */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-0.5">
           <div className="flex items-center gap-1.5 truncate">

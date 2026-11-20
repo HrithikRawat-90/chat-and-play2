@@ -89,7 +89,6 @@ const SettingsModal = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn select-none">
       <div className="w-full max-w-lg bg-[#140e2b] border border-purple-900/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
         <div className="h-14 px-5 border-b border-purple-900/40 flex items-center justify-between bg-[#191136]">
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4 text-purple-400" />
@@ -104,7 +103,6 @@ const SettingsModal = () => {
           </button>
         </div>
 
-        {/* Tab Switcher */}
         <div className="flex border-b border-purple-900/30 bg-[#120b24] px-4 pt-2">
           <button
             onClick={() => setActiveTab('profile')}
@@ -130,7 +128,6 @@ const SettingsModal = () => {
           </button>
         </div>
 
-        {/* Toast Notification */}
         {successToast && (
           <div className="mx-4 mt-3 p-2.5 rounded-xl bg-purple-900/90 border border-purple-400 text-white text-xs flex items-center justify-center gap-2 shadow-lg animate-fadeIn">
             <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -138,11 +135,9 @@ const SettingsModal = () => {
           </div>
         )}
 
-        {/* Modal Body */}
         <div className="p-5 overflow-y-auto space-y-5 flex-1">
           {activeTab === 'profile' ? (
             <form onSubmit={handleSave} className="space-y-4">
-              {/* Profile Photo Preview & Chooser */}
               <div>
                 <label className="block text-xs font-semibold text-purple-200 mb-2">
                   Profile Picture
@@ -189,7 +184,6 @@ const SettingsModal = () => {
                   </div>
                 </div>
 
-                {/* Preset Avatars Grid */}
                 <div className="mt-3">
                   <span className="text-[11px] font-medium text-purple-300/70 block mb-1.5">
                     Select a Preset Avatar:
@@ -217,7 +211,6 @@ const SettingsModal = () => {
                   </div>
                 </div>
 
-                {/* Custom Avatar URL */}
                 <div className="mt-3">
                   <input
                     type="url"
@@ -229,7 +222,6 @@ const SettingsModal = () => {
                 </div>
               </div>
 
-              {/* Display Name */}
               <div>
                 <label className="block text-xs font-semibold text-purple-200 mb-1.5">
                   Display Name
@@ -245,7 +237,6 @@ const SettingsModal = () => {
                 />
               </div>
 
-              {/* Bio Field */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-purple-200">
@@ -265,7 +256,6 @@ const SettingsModal = () => {
                 />
               </div>
 
-              {/* Action Buttons */}
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-purple-900/30">
                 <button
                   type="button"
@@ -307,7 +297,6 @@ const SettingsModal = () => {
                             : 'border-purple-900/40 hover:border-purple-700/60 bg-[#0d091a]'
                         }`}
                       >
-                        {/* Color swatch circle */}
                         <div
                           className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center shadow-md ring-2 ring-white/10"
                           style={{ backgroundColor: t.previewColor }}

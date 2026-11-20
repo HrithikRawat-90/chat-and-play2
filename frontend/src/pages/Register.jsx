@@ -112,7 +112,6 @@ const Register = () => {
   return (
     <div className="auth-screen min-h-screen flex items-center justify-center bg-[#090614] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,58,220,0.25),rgba(255,255,255,0))] p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-lg">
-        {/* Brand Header */}
         <div className="text-center mb-6">
           <div className="auth-brand inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 shadow-lg shadow-purple-600/30 mb-3 ring-1 ring-purple-400/30">
             <Gamepad2 className="w-7 h-7 text-white" />
@@ -125,7 +124,6 @@ const Register = () => {
           </p>
         </div>
 
-        {/* Register Card */}
         <div className="bg-[#130e26]/90 backdrop-blur-xl border border-purple-900/30 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-purple-950/50">
           <div className="mb-5">
             <h2 className="text-xl font-semibold text-white">Get Started</h2>
@@ -142,7 +140,6 @@ const Register = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Avatar Selector */}
             <div>
               <label className="block text-xs font-medium text-purple-200/80 mb-2">
                 Choose an Avatar

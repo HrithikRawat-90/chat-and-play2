@@ -59,7 +59,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Hash password before saving (Mongoose 8 async pre-save hook)
+// Hash the password only when it changes.
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) {
     return;
@@ -68,7 +68,6 @@ userSchema.pre('save', async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Compare password method
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

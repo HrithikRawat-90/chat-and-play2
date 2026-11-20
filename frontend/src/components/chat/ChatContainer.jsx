@@ -81,10 +81,8 @@ const ChatContainer = () => {
 
   return (
     <div className="fixed inset-0 w-full h-full flex overflow-hidden bg-[#090614] text-[#e2e8f0]">
-      {/* 1. Left Sidebar */}
       <LeftSidebar />
 
-      {/* 2. Center Chat Panel */}
       <main
         className={`flex-1 flex flex-col h-full min-w-0 bg-[#0d091d] relative overflow-hidden ${
           mobileView === 'chat' ? 'flex' : 'hidden md:flex'
@@ -104,20 +102,15 @@ const ChatContainer = () => {
         )}
       </main>
 
-      {/* 3. Right Sidebar (Collapsible Contact Information) */}
       {activeConversation && <ContactInfo />}
 
-      {/* User Search & Discovery Modal */}
       <UserSearchModal />
 
-      {/* App & Profile Settings Modal */}
       <SettingsModal />
 
-      {/* Group Creation & Join Modals */}
       <CreateGroupModal />
       <JoinGroupModal />
 
-      {/* Real-Time Multiplayer Tic-Tac-Toe Modal */}
       <TicTacToeModal />
     </div>
   );

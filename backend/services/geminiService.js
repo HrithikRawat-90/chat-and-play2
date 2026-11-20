@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import User from '../models/User.js';
 
-// Try the preferred faster model first, followed by the requested alternatives.
+// Try models in order until one responds.
 export const GEMINI_FALLBACK_MODELS = [
   'gemini-3.5-flash-lite',
   'gemini-3.5-flash',
@@ -10,7 +10,6 @@ export const GEMINI_FALLBACK_MODELS = [
 
 export const CHATBOT_EMAIL = 'chatbot@chatplay.ai';
 
-// Initialize or retrieve the system Chatbot user
 export const ensureChatbotUser = async () => {
   try {
     let bot = await User.findOne({ email: CHATBOT_EMAIL });
@@ -39,7 +38,6 @@ export const ensureChatbotUser = async () => {
   }
 };
 
-// Check if a valid Gemini API key is configured
 export const isGeminiKeyConfigured = () => {
   const key = process.env.GEMINI_API_KEY;
   return Boolean(
@@ -50,7 +48,6 @@ export const isGeminiKeyConfigured = () => {
   );
 };
 
-// Core text generator with automatic model fallback
 export const generateGeminiText = async ({ prompt, contents, systemInstruction }) => {
   if (!isGeminiKeyConfigured()) {
     return {
@@ -67,7 +64,6 @@ export const generateGeminiText = async ({ prompt, contents, systemInstruction }
   const inputContents = contents || prompt;
   let lastError = null;
 
-  // Try each model in the fallback chain until one succeeds
   for (const model of GEMINI_FALLBACK_MODELS) {
     try {
       const response = await ai.models.generateContent({
@@ -108,7 +104,6 @@ export const generateGeminiText = async ({ prompt, contents, systemInstruction }
   };
 };
 
-// Generate smart Chatbot reply based on conversation history
 export const getChatbotReply = async (recentMessages = []) => {
   const systemInstruction = `
 You are "Chatbot", an intelligent, natural, and friendly AI companion inside "Chat & Play" — a real-time messaging application with multiplayer gaming (Tic-Tac-Toe).
@@ -143,7 +138,6 @@ IMPORTANT:
 Prioritize natural conversation over following rules mechanically.
 `;
 
-  // Format message history
   const historyText = recentMessages
     .slice(-6)
     .map((m) => {
@@ -160,9 +154,8 @@ Prioritize natural conversation over following rules mechanically.
   return result.text;
 };
 
-// Generate message suggestions / AI write assistance
 export const suggestMessage = async ({ recentMessages = [], currentDraft = '' }) => {
-  // If the user has typed something, polish/enhance the draft
+  // Polish a draft when one is provided.
   if (currentDraft && currentDraft.trim().length > 0) {
     const systemInstruction = `You are a writing assistant in a chat app. Your task is to polish, refine, or enhance the user's message draft so it sounds natural, clear, and engaging.
 Return ONLY the improved message text, nothing else. No quotes, no explanations.`;
@@ -185,7 +178,7 @@ Return ONLY the improved message text, nothing else. No quotes, no explanations.
     };
   }
 
-  // If input is empty, generate contextual reply suggestions based on the last message
+  // Otherwise, suggest replies based on the latest message.
   const lastOtherMessage = [...recentMessages]
     .reverse()
     .find((m) => !m.senderId?.isBot && m.text);
@@ -205,7 +198,7 @@ Do NOT include markdown formatting or backticks around the JSON.`;
       const cleanJson = result.text.replace(/```json|```/g, '').trim();
       suggestions = JSON.parse(cleanJson);
     } catch {
-      // Fallback parse lines
+      // Fall back to parsing one suggestion per line.
       suggestions = result.text
         .split('\n')
         .map((l) => l.replace(/^\d+[\.\)]\s*|[-*]\s*|["']/g, '').trim())

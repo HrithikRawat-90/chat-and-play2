@@ -12,7 +12,7 @@ const connectDB = async () => {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/chat_and_play';
 
   try {
-    // Attempt standard connection first with 2.5s timeout
+    // Try the configured database before starting the in-memory fallback.
     const conn = await mongoose.connect(uri, {
       serverSelectionTimeoutMS: 2500,
     });
@@ -25,7 +25,7 @@ const connectDB = async () => {
     try {
       const { MongoMemoryServer } = await import('mongodb-memory-server');
 
-      // Check for locally cached binary
+      // Use the cached binary when available.
       const possibleBinaryPaths = [
         path.resolve(__dirname, '../node_modules/.cache/mongodb-memory-server/mongod-x64-win32-8.2.6.exe'),
         path.resolve(process.cwd(), 'node_modules/.cache/mongodb-memory-server/mongod-x64-win32-8.2.6.exe'),

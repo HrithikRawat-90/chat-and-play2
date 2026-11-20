@@ -160,16 +160,11 @@ async function runEndToEndTests() {
     console.log('✓ Shared game board opened! Alice is X, Bob is O. Game ID:', gameSessionId);
 
     // Play Match:
-    // Move 1: Alice (X) plays cell 0
     await new Promise((r) => socketAlice.emit('game:move', { gameId: gameSessionId, cellIndex: 0 }, r));
-    // Move 2: Bob (O) plays cell 3
     await new Promise((r) => socketBob.emit('game:move', { gameId: gameSessionId, cellIndex: 3 }, r));
-    // Move 3: Alice (X) plays cell 1
     await new Promise((r) => socketAlice.emit('game:move', { gameId: gameSessionId, cellIndex: 1 }, r));
-    // Move 4: Bob (O) plays cell 4
     await new Promise((r) => socketBob.emit('game:move', { gameId: gameSessionId, cellIndex: 4 }, r));
 
-    // Move 5: Alice (X) plays cell 2 -> Row 1 Win [0, 1, 2]!
     const winPromiseBob = new Promise((resolve) => {
       socketBob.once('game:updated', (finalGame) => {
         if (finalGame.status === 'completed') {

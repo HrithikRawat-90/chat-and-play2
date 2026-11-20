@@ -31,7 +31,6 @@ const MessageInput = () => {
   const [aiSuggestions, setAiSuggestions] = useState([]);
   const [aiNotification, setAiNotification] = useState('');
 
-  // Audio recording states
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioError, setAudioError] = useState('');
@@ -44,7 +43,6 @@ const MessageInput = () => {
   const streamRef = useRef(null);
   const recordingTimerRef = useRef(null);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
@@ -273,7 +271,6 @@ const MessageInput = () => {
 
   return (
     <div className="p-3 sm:p-4 bg-[#121214] border-t border-white/10 relative">
-      {/* Hidden File Input for Local Image Upload */}
       <input
         type="file"
         ref={fileInputRef}
@@ -282,7 +279,6 @@ const MessageInput = () => {
         className="hidden"
       />
 
-      {/* Emoji Picker Popup */}
       {showEmojiPicker && (
         <div className="absolute bottom-16 left-12 bg-[#1c1c1e] border border-white/15 rounded-2xl p-2.5 shadow-2xl z-40 flex items-center gap-2 animate-fadeIn">
           {COMMON_EMOJIS.map((emoji) => (
@@ -298,7 +294,6 @@ const MessageInput = () => {
         </div>
       )}
 
-      {/* Image Attachment Modal */}
       {showImageModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="w-full max-w-md bg-[#1c1c1e] border border-white/10 rounded-3xl p-5 shadow-2xl animate-fadeIn">
@@ -312,7 +307,6 @@ const MessageInput = () => {
               </button>
             </div>
 
-            {/* Direct Local File Upload Button */}
             <div className="mb-4">
               <button
                 type="button"
@@ -352,7 +346,6 @@ const MessageInput = () => {
         </div>
       )}
 
-      {/* Selected Image Preview Thumbnail */}
       {selectedImage && (
         <div className="mb-2 inline-flex items-center gap-2 p-1.5 bg-[#1c1c1e] border border-white/10 rounded-xl">
           <img
@@ -370,7 +363,6 @@ const MessageInput = () => {
         </div>
       )}
 
-      {/* AI Suggestion Notification Banner */}
       {aiNotification && (
         <div className="mb-2 px-3 py-1.5 rounded-xl bg-[#1c1c1e] border border-[#007aff]/30 text-white text-xs flex items-center justify-between gap-2 shadow-lg animate-fadeIn">
           <div className="flex items-center gap-1.5 font-medium">
@@ -387,7 +379,6 @@ const MessageInput = () => {
         </div>
       )}
 
-      {/* AI Quick Reply Chips */}
       {aiSuggestions.length > 0 && (
         <div className="mb-2 p-2 rounded-2xl bg-[#1c1c1e] border border-white/10 flex items-center justify-between gap-2 animate-fadeIn">
           <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
@@ -423,7 +414,6 @@ const MessageInput = () => {
 
       {audioError && <div role="alert" className="mb-2 px-3 py-2 rounded-xl bg-red-950/70 border border-red-500/40 text-red-200 text-xs">{audioError}</div>}
 
-      {/* Voice Recording Mode UI */}
       {isRecording ? (
         <div className="flex items-center justify-between px-4 py-2.5 bg-[#1c1c1e] border border-red-500/30 rounded-2xl animate-fadeIn">
           <div className="flex items-center gap-3">
@@ -491,7 +481,6 @@ const MessageInput = () => {
             <Image className="w-5 h-5" />
           </button>
 
-          {/* AI Auto-Write / Suggest Button */}
           <button
             type="button"
             onClick={handleAiSuggest}
@@ -514,7 +503,6 @@ const MessageInput = () => {
             )}
           </button>
 
-          {/* Text Input */}
           <div className="flex-1 relative">
             <input
               ref={inputRef}
@@ -533,7 +521,6 @@ const MessageInput = () => {
             />
           </div>
 
-          {/* Send / Mic Icon */}
           <button
             type={text.trim() || selectedImage ? 'submit' : 'button'}
             onClick={text.trim() || selectedImage ? undefined : startRecording}
